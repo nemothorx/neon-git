@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# set GIT_AUTHOR_DATE and GIT_COMMITTER_DATE as per https://alexpeattie.com/blog/working-with-dates-in-git/
+
+ARG1=$1
+
+if [ -z "$ARG1" ] ; then
+    echo -n "# Please provide a filename or valid date/time "
+    read ARG1
+fi
+
+if [ -z "$ARG1" ] ; then
+    # still empty means we're unsetting
+    echo "unset GIT_AUTHOR_DATE"
+    echo "unset GIT_COMMITTER_DATE"
+    exit 0
+fi
+
+# we know $input is a string Let's find out if it's a file
+
+if [ -e "$ARG1" ] ; then
+    # it's a file, so get a datestring from it's mtime
+    input=$(stat --printf %y "$ARG1")
+else
+    # it's not a file, so assume we've been given a datetime string
+    input=$ARG1
+fi
+
+case $input in
+    now|return)
+        echo "unset GIT_AUTHOR_DATE"
+        echo "unset GIT_COMMITTER_DATE"
+        ;;
+    status)
+        set | grep "GIT_.*_DATE"
+        true
+        ;;
+    *)
+        dateout=$(date -R -d "$input" 2>/dev/null )
+        [ $? -ne 0 ] && dateout=''  # cleanup if it failed
+
+        # at this point we should have a valid $dateout to use... 
+        if [ -n "$dateout" ] ; then
+            echo "export GIT_AUTHOR_DATE=\"$dateout\""
+            echo "export GIT_COMMITTER_DATE=\"$dateout\""
+        else
+            exit 1
+        fi
+        ;;
+esac
