@@ -19,6 +19,13 @@ For scripted use, the output can be processed automatically by `eval`
 Note: I have chosen to use echo/eval rather than "source" so the default
 running of the script is informative. 
 
+
+## Example of use
+
+* First dozen or so commits (2005-2020) in https://github.com/nemothorx/indexpage
+  * Added vis this script: https://github.com/nemothorx/indexpage/commit/0ca47029637fc5ec21c20a6c46765169f71a4f02
+
+
 ## ARG1 options
 * path/to/file - and get it's mtime
 * string - parse it as a datetime string with date(1) unless one of:
