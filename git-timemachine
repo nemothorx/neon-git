@@ -27,7 +27,7 @@ else
 fi
 
 case $input in
-    now|return)
+    now|return|reset)
         echo "unset GIT_AUTHOR_DATE"
         echo "unset GIT_COMMITTER_DATE"
         ;;

@@ -23,7 +23,7 @@ running of the script is informative.
 * path/to/file - and get it's mtime
 * string - parse it as a datetime string with date(1) unless one of:
   * "status" - display our times
-  * "now|return" - unset our variables
+  * "now|return|reset" - unset our variables
 * no ARG1 - prompt within the script for either of the above
   ...if still nothing, then unset our variables
 
@@ -31,5 +31,5 @@ running of the script is informative.
 ## NOTES/BUGS
 * Using "eval" method without a param will silently prompt for input, and then silently fail regardless of input.
 * Filenames take precedence over other interpretations of the input string
-  * Thus it's impossible to use "status" "now" or "return" if a file by that
-    name exists in the PWD. Workaround: Change PWD first
+  * Thus it's impossible to use "status" "now" "return" or "reset" if a
+    file by that name exists in the PWD. Workaround: Change PWD first
