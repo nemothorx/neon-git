@@ -1,14 +1,15 @@
 # git-timemachine
 
-Set the time of your git commits. This is intended for turning a directory
-of script archives into a git repo, and maintain appropriate timing metadata
+Set the time of your git commits. This is intended for turning a directory of
+script archives into a git repo, and maintain appropriate timing metadata
 
-The script outputs GIT_AUTHOR_DATE and GIT_COMMITTER_DATE environment lines
-as per https://alexpeattie.com/blog/working-with-dates-in-git/
+The script outputs GIT_AUTHOR_DATE and GIT_COMMITTER_DATE environment lines as
+per https://alexpeattie.com/blog/working-with-dates-in-git/
 
 These lines can then be copypasta as required to the local shell. 
 
-Heavy git users may enjoy an alias to turn "git-timemachine" into "git timemachine"
+Heavy git users may enjoy an alias to turn "git-timemachine" into "git
+timemachine"
 
 > `git config --global alias.timemachine '!git-timemachine $3'`
 
@@ -22,8 +23,10 @@ running of the script is informative.
 
 ## Example of use
 
-* First dozen or so commits (2005-2020) in https://github.com/nemothorx/indexpage
-  * Added vis this script: https://github.com/nemothorx/indexpage/commit/0ca47029637fc5ec21c20a6c46765169f71a4f02
+* First dozen or so commits (2005-2020) in
+  https://github.com/nemothorx/indexpage
+  * Added via this script:
+    https://github.com/nemothorx/indexpage/commit/0ca47029637fc5ec21c20a6c46765169f71a4f02
 
 
 ## ARG1 options
@@ -36,7 +39,9 @@ running of the script is informative.
 
 
 ## NOTES/BUGS
-* Using "eval" method without a param will silently prompt for input, and then silently fail regardless of input.
+* Using "eval" method without a param will silently prompt for input, and then
+  silently fail regardless of input.
 * Filenames take precedence over other interpretations of the input string
-  * Thus it's impossible to use "status" "now" "return" or "reset" if a
-    file by that name exists in the PWD. Workaround: Change PWD first
+  * Thus it's impossible to use "status" "now" "return" or "reset" if a file by
+    that name exists in the PWD. 
+    * Workaround: change to a different directory before running those
