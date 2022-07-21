@@ -99,8 +99,9 @@ done < <(cat $csvfile)
 
 echo ""
 echo ""
-echo "Manual cleanup:
-* review git logs, and if satisfied, remove untracked original source files
-* git rm $csvfile"
-echo ""
-echo "All done. Bye bye."
+echo "Manual review/cleanup:
+* review git log. If satisfied then remove untracked original source files
+* git rm $csvfile
+* Update README.md to suit
+
+...over to you!"
