@@ -1,19 +1,21 @@
 #!/bin/bash
 
 # This script complements git-timemachine by processing a CSV containing the
-# following format (note: headerless CSV)
+# following format
+# * note1: headerless CSV
+# * note2: TAB, not comma delimited. 
+#   * Originally comma, now call it "character"
+#   * Normally I avoid tabs, but this is a one-off file. The format can be a little weird
 # 
-# source_filename,target_filename,commit message(which may contain, commas)
+# src_filename	tgt_filename	commit message(which may be\n\n"complex"))
 # 
-# Only the first two "," in the line are delimiters. Any following within the
-# commit message are retained within the message. 
-#
 # The commit message itself is interpreted through `echo -e` thus while it's
-# a single line in the CSV, it can output to multiple lines. eg:
-# filename_v1,filename,first version\n\nthis is seriously old, yeah
+# a single line in the CSV, it can output to multiple lines. Note the
+# double-escape though:
+# filename_v1	filename	first "version"\\n\\nthis is seriously old. Quotes ok.
 #
-# The benefit is that preparing the csv then running this script should be
-# easier than preparing a custom import2git.sh as per example at
+# The benefit of all this is that preparing the csv then running this script
+# should be easier than preparing a custom import2git.sh as per example at
 # https://github.com/nemothorx/indexpage/commit/0ca47029637fc5ec21c20a6c46765169f71a4f02
 #
 # The actual purpose is for importing into git a collection of
@@ -56,7 +58,7 @@ if [ ! -d ".git" ] ; then
     exit 2
 fi
 
-IFS=,
+IFS="	"       # tab only
 
 
 #### pass 1:  sanity check csvfile
@@ -83,7 +85,7 @@ ls -rot --full-time * >> README.md
 
 echo git add $csvfile
 echo git add README.md
-echo git commit -a -m "chronocsv2git begin: adding README and chrono.csv"
+echo git commit -a -m "chronocsv2git begin: adding README.md and chrono.csv"
 
 
 #### pass 2: do the git-thing
@@ -93,7 +95,7 @@ while read srcfile tgtfile msg ; do
     cp -a $srcfile $tgtfile 
     eval $(git timemachine $tgtfile)
     git add $tgtfile
-    git commit -a -m "$(echo -e "${msg}")"
+    git commit -a -m "$(echo -e ${msg})"
 done < <(cat $csvfile)
 
 echo "Manual cleanup:
