@@ -1,9 +1,17 @@
 # git-timemachine
 
-Set the time of your git commits. This is intended for turning a directory of
-script archives into a git repo, and maintain appropriate timing metadata
+A set of tools to help turn a directory of script archives into a git repo, and
+maintain appropriate timing metadata
 
-The script outputs GIT_AUTHOR_DATE and GIT_COMMITTER_DATE environment lines as
+So far, two tools:
+
+* `git-timemachine`
+* `chronocsv2git.sh`
+
+
+## git-timemachine
+
+This script outputs GIT_AUTHOR_DATE and GIT_COMMITTER_DATE environment lines as
 per https://alexpeattie.com/blog/working-with-dates-in-git/
 
 These lines can then be copypasta as required to the local shell. 
@@ -21,7 +29,7 @@ Note: I have chosen to use echo/eval rather than "source" so the default
 running of the script is informative. 
 
 
-## Example of use
+### Example of use
 
 * First dozen or so commits (2005-2020) in
   https://github.com/nemothorx/indexpage
@@ -29,7 +37,7 @@ running of the script is informative.
     https://github.com/nemothorx/indexpage/commit/0ca47029637fc5ec21c20a6c46765169f71a4f02
 
 
-## ARG1 options
+### ARG1 options
 * path/to/file - and get it's mtime
 * string - parse it as a datetime string with date(1) unless one of:
   * "status" - display our times
@@ -38,10 +46,23 @@ running of the script is informative.
   ...if still nothing, then unset our variables
 
 
-## NOTES/BUGS
+### NOTES/BUGS
 * Using "eval" method without a param will silently prompt for input, and then
   silently fail regardless of input.
 * Filenames take precedence over other interpretations of the input string
   * Thus it's impossible to use "status" "now" "return" or "reset" if a file by
     that name exists in the PWD. 
     * Workaround: change to a different directory before running those
+
+
+## chronocsv2git.sh
+
+A script which takes a prepared csv for a directory of historic files, and
+controls git-timemachine in adding them to a repo with suitable dates. 
+
+Usage is simply `chronocsv2git.sh`. 
+
+
+
+
+
