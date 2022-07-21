@@ -83,21 +83,22 @@ Detailed ls of source files is as follows:
 " >> README.md
 ls -rot --full-time * >> README.md
 
-echo git add $csvfile
-echo git add README.md
-echo git commit -a -m "chronocsv2git begin: adding README.md and chrono.csv"
+git add $csvfile
+git add README.md
+git commit -a -m "chronocsv2git begin: adding README.md and chrono.csv"
 
 
 #### pass 2: do the git-thing
 
 while read srcfile tgtfile msg ; do
-    echo $srcfile
-    cp -a $srcfile $tgtfile 
+    cp -av $srcfile $tgtfile 
     eval $(git timemachine $tgtfile)
     git add $tgtfile
     git commit -a -m "$(echo -e ${msg})"
 done < <(cat $csvfile)
 
+echo ""
+echo ""
 echo "Manual cleanup:
 * review git logs, and if satisfied, remove untracked original source files
 * git rm $csvfile"
