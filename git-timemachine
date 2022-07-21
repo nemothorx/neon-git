@@ -2,6 +2,10 @@
 
 # set GIT_AUTHOR_DATE and GIT_COMMITTER_DATE as per https://alexpeattie.com/blog/working-with-dates-in-git/
 
+# I'd like to test if we're being eval, but I don't think we can offhand
+# if I get that working, then set sourced=<value>
+sourced="assumed"
+
 ARG1=$1
 
 if [ -z "$ARG1" ] ; then
@@ -11,7 +15,7 @@ fi
 
 if [ -z "$ARG1" ] ; then
     # still empty means we're unsetting
-    echo "...for your copypasta needs:"
+    [ -z "$sourced" ] && echo "...for your copypasta needs:"
     echo "unset GIT_AUTHOR_DATE"
     echo "unset GIT_COMMITTER_DATE"
     exit 0
@@ -29,7 +33,7 @@ fi
 
 case $input in
     now|return|reset)
-        echo "...for your copypasta needs:"
+        [ -z "$sourced" ] && echo " ...for your copypasta needs:"
         echo "unset GIT_AUTHOR_DATE"
         echo "unset GIT_COMMITTER_DATE"
         ;;
@@ -43,7 +47,7 @@ case $input in
 
         # at this point we should have a valid $dateout to use... 
         if [ -n "$dateout" ] ; then
-            echo "...for your copypasta needs:"
+            [ -z "$sourced" ] && echo "...for your copypasta needs:"
             echo "export GIT_AUTHOR_DATE=\"$dateout\""
             echo "export GIT_COMMITTER_DATE=\"$dateout\""
         else
