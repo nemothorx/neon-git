@@ -2,17 +2,18 @@
 
 # This script complements git-timemachine by processing a CSV containing the
 # following format
-# * note1: headerless CSV
-# * note2: TAB, not comma delimited. 
-#   * Originally comma, now call it "character"
-#   * Normally I avoid tabs, but this is a one-off file. The format can be a little weird
 # 
-# src_filename	tgt_filename	commit message(which may be\n\n"complex"))
+# src_filename,tgt_filename,commit message(which, may be\n\n"complex"))
+# $,ls,-r,-o,-t
+#
+# * note1: headerless CSV
+# * note2: if field 1 is "$" then field2 is a command and field3+ are options
+#           ...multiple options MUST be seperated by , because "IFS=," here
 # 
 # The commit message itself is interpreted through `echo -e` thus while it's
 # a single line in the CSV, it can output to multiple lines. Note the
 # double-escape though:
-# filename_v1	filename	first "version"\\n\\nthis is seriously old. Quotes ok.
+# filename_v1,filename,first "version"\\n\\nthis is seriously old. Commas, Quotes & etc ok!
 #
 # The benefit of all this is that preparing the csv then running this script
 # should be easier than preparing a custom import2git.sh as per example at
@@ -37,11 +38,16 @@
 # to the target_filename, then git-timemachine that to set timing, then git add
 # and commit it. 
 # 
-# WHAT IT DOES NOT DO
+# WHAT IT DOES NOT DO DIRECTLY
 # * does not create the git repo itself
+#   * because this is tested, it cannot even be a sub-command in chrono.csv
 # * nor does it do any complex branching, merging, etc.
 #   * ie, it's intended for a catchup of a single file from historic archives
 #     into git, whilst maintaining date metadata. Nothing more. 
+# * however, it DOES support arbitrary sub-commands via "$" directive in the
+#   csv. Through that, git checkout, branching, etc, can all be added in
+
+IFS=","
 
 ############################################ MAIN
 
@@ -58,17 +64,22 @@ if [ ! -d ".git" ] ; then
     exit 2
 fi
 
-IFS="	"       # tab only
-
 
 #### pass 1:  sanity check csvfile
-# ensure all col1 exist as files
+# ensure all col1 exist as files or commands
 # and all col3 are non-zero
 
 while read srcfile tgtfile msg ; do
-    [ ! -e "$srcfile" ] && echo "! no $srcfile found. Fix $csvfile" && exit 3
-    [ -e "$tgtfile" ] && echo "! $tgtfile already exists. Refusing to blat it with $srcfile. pls fix" && exit 4
-    [ ! -n "$msg" ] && echo "! no msg for $srcfile. Fix $csvfile" && exit 5
+    case $srcfile in
+        "$")
+            echo "TODO: test if $tgtfile is a _command_"
+            ;;
+        *)
+            [ ! -e "$srcfile" ] && echo "! no $srcfile found. Fix $csvfile" && exit 3
+            [ -e "$tgtfile" ] && echo "! $tgtfile already exists. Refusing to blat it with $srcfile. pls fix" && exit 4
+            [ ! -n "$msg" ] && echo "! no msg for $srcfile. Fix $csvfile" && exit 5
+            ;;
+    esac
 done < <(cat $csvfile)
 
 # TODO: validate $msg to be suitable for "$msg" in git commandline. ie, no '"'??
@@ -91,10 +102,21 @@ git commit -a -m "chronocsv2git begin: adding README.md and chrono.csv"
 #### pass 2: do the git-thing
 
 while read srcfile tgtfile msg ; do
-    cp -av $srcfile $tgtfile 
-    eval $(git timemachine $tgtfile)
-    git add $tgtfile
-    git commit -a -m "$(echo -e ${msg})"
+    # note: any "," in $msg are converted to " " if referenced as $msg
+    # ...but keep the commas if referenced as "$msg". (ie, quoted)
+    # ...this impacts ability to use $msg as options - as it cannot be quoted,
+    #   commas are not accepted in options of command instructions
+    case $srcfile in
+        "$")
+            $tgtfile $msg
+            ;;
+        *)
+            cp -av $srcfile $tgtfile
+            eval $(git timemachine $tgtfile)
+            git add $tgtfile
+            git commit -a -m "$(echo -e "${msg}")"
+            ;;
+    esac
 done < <(cat $csvfile)
 
 echo ""
