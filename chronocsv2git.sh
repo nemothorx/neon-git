@@ -125,7 +125,7 @@ done < <(cat $csvfile)
 echo ""
 echo ""
 
-srcflist=$(cat $csvfile | grep -v '\$' | cut -d" " -f 1 | tr "\n" " ")
+srcflist=$(cat $csvfile | cut -d" " -f 1 | grep -v '\$' | tr "\n" " ")
 echo "Manual review/cleanup:
 * review git log. If satisfied then remove original source files"
 echo tar cvfz chronocsv2git.tgz $csvfile $srcflist
