@@ -1,19 +1,22 @@
 #!/bin/bash
 
-# This script complements git-timemachine by processing a CSV containing the
+# This script complements git-timemachine by processing a CSV (character
+# seperated, where character is bash IFS - ie, space/tab) containing the
 # following format
 # 
-# src_filename,tgt_filename,commit message(which, may be\n\n"complex"))
+# src_filename tgt_filename commit message(which, may be\n\n"complex"))
 # $,ls,-r,-o,-t
 #
 # * note1: headerless CSV
 # * note2: if field 1 is "$" then field2 is a command and field3+ are options
-#           ...multiple options MUST be seperated by , because "IFS=," here
+# * note3: if there is only fields 1,2 and no commit message, then there is no
+#   git commit against that file. git add only. Thus multiple files may be 
+#   added prior to a single commit
 # 
 # The commit message itself is interpreted through `echo -e` thus while it's
 # a single line in the CSV, it can output to multiple lines. Note the
 # double-escape though:
-# filename_v1,filename,first "version"\\n\\nthis is seriously old. Commas, Quotes & etc ok!
+# filename_v1 filename first "version"\\n\\nthis is seriously old. 
 #
 # The benefit of all this is that preparing the csv then running this script
 # should be easier than preparing a custom import2git.sh as per example at
@@ -47,7 +50,6 @@
 # * however, it DOES support arbitrary sub-commands via "$" directive in the
 #   csv. Through that, git checkout, branching, etc, can all be added in
 
-IFS=","
 
 ############################################ MAIN
 
@@ -75,9 +77,8 @@ while read srcfile tgtfile msg ; do
             echo "TODO: test if $tgtfile is a _command_"
             ;;
         *)
-            [ ! -e "$srcfile" ] && echo "! no $srcfile found. Fix $csvfile" && exit 3
+            [ ! -e "$srcfile" ] && echo "! src $srcfile not found. Fix $csvfile" && exit 3
             [ -e "$tgtfile" ] && echo "! $tgtfile already exists. Refusing to blat it with $srcfile. pls fix" && exit 4
-            [ ! -n "$msg" ] && echo "! no msg for $srcfile. Fix $csvfile" && exit 5
             ;;
     esac
 done < <(cat $csvfile)
@@ -112,18 +113,24 @@ while read srcfile tgtfile msg ; do
             ;;
         *)
             cp -av $srcfile $tgtfile
-            eval $(git timemachine $tgtfile)
             git add $tgtfile
-            git commit -a -m "$(echo -e "${msg}")"
+            if [ -n "$msg" ] ; then
+                eval $(git timemachine $tgtfile)
+                git commit -a -m "$(echo -e "${msg}")"
+            fi
             ;;
     esac
 done < <(cat $csvfile)
 
 echo ""
 echo ""
+
+srcflist=$(cat $csvfile | grep -v '\$' | cut -d" " -f 1 | tr "\n" " ")
 echo "Manual review/cleanup:
-* review git log. If satisfied then remove untracked original source files
-* git rm $csvfile
-* Update README.md to suit
+* review git log. If satisfied then remove original source files"
+echo tar cvfz chronocsv2git.tgz $csvfile $srcflist
+echo rm $srcflist
+echo git rm $csvfile
+echo "* Update README.md to suit
 
 ...over to you!"
