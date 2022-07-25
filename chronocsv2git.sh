@@ -98,6 +98,7 @@ ls -rot --full-time * >> README.md
 git add $csvfile
 git add README.md
 git commit -a -m "chronocsv2git begin: adding README.md and chrono.csv"
+echo ""
 
 
 #### pass 2: do the git-thing
@@ -117,6 +118,7 @@ while read srcfile tgtfile msg ; do
             if [ -n "$msg" ] ; then
                 eval $(git timemachine $tgtfile)
                 git commit -a -m "$(echo -e "${msg}")"
+                echo ""
             fi
             ;;
     esac
@@ -128,7 +130,7 @@ echo ""
 srcflist=$(cat $csvfile | cut -d" " -f 1 | grep -v '\$' | tr "\n" " ")
 echo "Manual review/cleanup:
 * review git log. If satisfied then remove original source files"
-echo tar cvfz chronocsv2git.tgz $csvfile $srcflist
+echo tar cvfz chronocsv2gittimemachine.tgz $csvfile $srcflist
 echo rm $srcflist
 echo git rm $csvfile
 echo "* Update README.md to suit
