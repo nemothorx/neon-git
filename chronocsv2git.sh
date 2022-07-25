@@ -37,13 +37,13 @@
 # -rw-r--r-- 1 nemo 7.7K Apr 24 18:14 runranplay_1.11_
 
 # HOW IT WORKS
-# The script will process chrono.csv line by line, cp -a each source_filename
+# The script will process chronogit.csv line by line, cp -a each source_filename
 # to the target_filename, then git-timemachine that to set timing, then git add
 # and commit it. 
 # 
 # WHAT IT DOES NOT DO DIRECTLY
 # * does not create the git repo itself
-#   * because this is tested, it cannot even be a sub-command in chrono.csv
+#   * because this is tested, it cannot even be a sub-command in chronogit.csv
 # * nor does it do any complex branching, merging, etc.
 #   * ie, it's intended for a catchup of a single file from historic archives
 #     into git, whilst maintaining date metadata. Nothing more. 
@@ -53,7 +53,7 @@
 
 ############################################ MAIN
 
-csvfile=chrono.csv    # Taking no alternatives at this time
+csvfile=chronogit.csv    # Taking no alternatives at this time
 
 if [ ! -e $csvfile ] ; then
     echo "! no csvfile found (expecting $csvfile))
@@ -97,7 +97,7 @@ ls -rot --full-time * >> README.md
 
 git add $csvfile
 git add README.md
-git commit -a -m "chronocsv2git begin: adding README.md and chrono.csv"
+git commit -a -m "chronocsv2git begin: adding README.md and chronogit.csv"
 echo ""
 
 
