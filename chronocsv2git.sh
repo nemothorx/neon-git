@@ -130,10 +130,10 @@ done < <(cat $ctrlfile.csv | grep -v '^#' | grep .)
 echo ""
 echo ""
 
-srcflist=$(cat $ctrlfile.csv | cut -d" " -f 1 | grep -v '^\$' | grep-v '^\#' | grep . | tr "\n" " ")
+srcflist=$(cat $ctrlfile.csv | cut -d" " -f 1 | grep -v '^\$' | grep -v '^\#' | grep . | tr "\n" " ")
 echo "Manual review/cleanup:
 * review git log. If satisfied then remove original source files"
-echo tar cvfz chronocsv2gittimemachine.tgz $ctrlfile.csv $ctrlfile.md $srcflist
+echo tar cvfz chronogitcsv2git-timemachine.tgz $ctrlfile.csv $ctrlfile.md $srcflist
 echo rm $srcflist
 echo git rm $ctrlfile.csv
 echo git rm $ctrlfile.md
