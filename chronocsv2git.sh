@@ -9,9 +9,11 @@
 #
 # * note1: headerless CSV
 # * note2: if field 1 is "$" then field2 is a command and field3+ are options
+# * note2: lines beginning with '#' are ignored as comments. Blank lines also
+#          ignored
 # * note3: if there is only fields 1,2 and no commit message, then there is no
-#   git commit against that file. git add only. Thus multiple files may be 
-#   added prior to a single commit
+#          git commit against that file. git add only. Thus multiple files may
+#          be added prior to a single commit
 # 
 # The commit message itself is interpreted through `echo -e` thus while it's
 # a single line in the CSV, it can output to multiple lines. Note the
@@ -81,7 +83,7 @@ while read srcfile tgtfile msg ; do
             [ -e "$tgtfile" ] && echo "! $tgtfile already exists. Refusing to blat it with $srcfile. pls fix" && exit 4
             ;;
     esac
-done < <(cat $csvfile)
+done < <(cat $csvfile | grep -v '^#' | grep . )
 
 # TODO: validate $msg to be suitable for "$msg" in git commandline. ie, no '"'??
 
@@ -122,12 +124,12 @@ while read srcfile tgtfile msg ; do
             fi
             ;;
     esac
-done < <(cat $csvfile)
+done < <(cat $csvfile | grep -v '^#' | grep .)
 
 echo ""
 echo ""
 
-srcflist=$(cat $csvfile | cut -d" " -f 1 | grep -v '\$' | tr "\n" " ")
+srcflist=$(cat $csvfile | cut -d" " -f 1 | grep -v '^\$' | grep-v '^\#' | grep . | tr "\n" " ")
 echo "Manual review/cleanup:
 * review git log. If satisfied then remove original source files"
 echo tar cvfz chronocsv2gittimemachine.tgz $csvfile $srcflist
