@@ -1,0 +1,25 @@
+[init]
+	defaultBranch = main
+
+[user]
+	name = ____ _____
+	email = ____@_____.___
+
+[alias]
+    lg1 = log --graph --abbrev-commit --abbrev=8 --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --all
+    lg1t = log --graph --abbrev-commit --abbrev=8 --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --all --author-date-order
+    lg2 = log --graph --abbrev-commit --abbrev=8 --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n''          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)' --all
+    lg2t = log --graph --abbrev-commit --abbrev=8 --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n''          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)' --all --author-date-order
+    lg3t = log --graph --abbrev-commit --abbrev=8 --decorate --format=format:'%C(bold blue)%h%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)' --all --author-date-order
+    lg = !"git lg1"
+
+
+    initmain = !git init && git symbolic-ref HEAD refs/heads/main
+    timemachine = !"git-timemachine $3"
+    ignore = "!f() { echo $1 >> .gitignore; }; f"
+    # ignore from https://devtut.github.io/git/aliases.html
+
+    Benjamin = "!f() { echo 'git forked'; }; f"
+    forked = "!f() { echo 'This is all Benjamins fault'; }; f"
+    fork = "!f() { echo "This is all ${1}\\'s fault"; }; f"
+    fuck = "!f() { echo "This is all ${1}\\'s fault"; }; f"

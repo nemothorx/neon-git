@@ -63,6 +63,14 @@ controls git-timemachine in adding them to a repo with suitable dates.
 Usage is simply `chronocsv2git.sh`. 
 
 
+## ghls
+
+With this, this repo is moving away from being git timemachine specific tools,
+and starting to be my personalised set of git tools of any form. 
 
 
+## _gitconfig
+
+My depersonalised gitconfig. Mainly here for the aliases. Some are practical,
+some fun. (`git lg1` is my musclememory replacement for `git log`)
 
