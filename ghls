@@ -46,16 +46,16 @@ do_getblameinfo() {
     # INFILE added to awk - it's now the file OR top directory
     git blame --line-porcelain $infile | awk -v INFILE=${infile%%/*}  '
         {
-            if (/author-time/) { 
+            if (/^author-time /) { 
                 authtime=$2
             }
-            if (/^[0-9a-z]{40}/) {
+            if (/^[0-9a-z]{40} /) {
                 ghash=$1
             }
             if (/^author /) { 
                 authname=$2" "$3" "$4" "$5" "$6
             }
-            if (/summary/) { 
+            if (/^summary /) { 
                 printf INFILE"	"authtime"	"ghash"	"authname"	"
                 $1="";print 
             } 
