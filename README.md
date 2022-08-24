@@ -57,10 +57,13 @@ running of the script is informative.
 
 ## chronocsv2git.sh
 
+**NOTE: chronocsv2.git is not considered finished. Use at own risk**
+
 A script which takes a prepared csv for a directory of historic files, and
 controls git-timemachine in adding them to a repo with suitable dates. 
 
 Usage is simply `chronocsv2git.sh`. 
+
 
 
 ## ghls

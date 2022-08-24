@@ -78,7 +78,7 @@ while read num authorname githash authorreltime summary; do
         titleline[h]=$githash
         titleline[ar]=$authorreltime
     fi
-    # populate a hash here with human times?
+    # populate a hash here with friendly relative times
     relatime[a$githash]="$authorreltime"
 done < <(git log --abbrev-commit --abbrev=10 --format=format:"%an	%h	%ar	%s" --all | cat -n | sed -e 's/^\s*//g')
 
@@ -124,14 +124,24 @@ done < <(find -not -path '*/.*' -type f -printf "%P\n" | while read line ; do
 # loop above can get first of each. Makes no impact on files.
 # sort-V outside hte subshell gives us our final order - similar to github
 
-# TODO: would be neat to handle this way better than hardcoded printf (designed for 80column)
-# ie: calculate max string lengths for name and time, and then truncate msg to suit?
-# ...also option: offload formatting to `|column -t` (after column lengths done)
+### TODO 
+# 
+## Bugs:
+# * This should have a subdirectory specific status line (mimicking github),
+#   but |sort-V above makes $dirline array be unavailable outside the loop
+#   ...making this pointless:
+#       printf "$greyback $white%-16s $boldwhite%-20s $green✔ $yellow%8s %-10s$reset\n" ${dirline[an]} ${dirline[s]} ${dirline[h]} ${dirline[ar]}
+#   The statusline works without the |sort-V, but at the sacrifice of a nicely
+# sorted list
+#
+#   ideal case: select between git and directory level statuslines
+#   automatically, and then have the listing correct thereafter.  selecting
+#   between should be a matter of looking for a .git directory
 
-# finally, our end (directory) status line
-# TODO: BUG: that |sort-V above makes $dirline array be unavailable outside the loop
-# ...making this pointless. 
-# printf "$greyback $white%-16s $boldwhite%-20s $green✔ $yellow%8s %-10s$reset\n" ${dirline[an]} ${dirline[s]} ${dirline[h]} ${dirline[ar]}
+## TODO: 
+# * would be neat to handle this way better than designed-for-80column
+#   hardcoded printf. 
+#   Instead we should calculate max string lengths for name and time, and then
+#   truncate msg to suit and then offload formatting to `|column -t`?
 
-# ideal case: select between git and directory level statuslines automatically, and then have the listing correct thereafter. 
-# selecting between should be a matter of looking for a .git directory
+
