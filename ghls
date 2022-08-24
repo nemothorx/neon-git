@@ -9,7 +9,7 @@
 # every file). It is not optimal, but it works for the smaller repos I have :)
 #
 
-# Check if we're even in a git repo
+# Check if we're even in a git repo and tell us about it
 git status 2>/dev/null
 case $? in 
     128) 
@@ -143,5 +143,8 @@ done < <(find -not -path '*/.*' -type f -printf "%P\n" | while read line ; do
 #   hardcoded printf. 
 #   Instead we should calculate max string lengths for name and time, and then
 #   truncate msg to suit and then offload formatting to `|column -t`?
+# * Add feature to `touch` each file with it's newest time (and perhaps each
+#   directory with the newest file-creation-time within), so common `ls` and
+#   `find` tools can find recent (or old) files by those normal means too
 
 
