@@ -102,7 +102,7 @@ while read fname ttime ghash authorname summary ; do
             # TODO: option to switch between relative and absolute time
             # TODO: detect if name/summary are truncated and append "…"  
 #            printf "%-3s %-20s %-36s %17s\n" $typ ${fname:0:20} ${summary:0:36} $(date -d @$ttime +"%F %T")
-            printf "%-3s %-22s $teal%-39s $yellow%14s$reset\n" $typ ${fname:0:22} ${summary:0:39} ${relatime[a$shrthash]:0:14}
+            printf "%-3s %-16s $teal%-45s $yellow%14s$reset\n" $typ ${fname:0:16} ${summary:0:45} ${relatime[a$shrthash]:0:14}
         fi
         # TODO/BUG: this dirline info doesn't escape this loop while the loop |sort-V. 
         # ...but without the sort-V, the ordering is rubbish
