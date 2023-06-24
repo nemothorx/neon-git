@@ -119,7 +119,7 @@ while read srcfile tgtfile msg ; do
     case $srcfile in
         "$")
             echo ":: executing "$tgtfile $msg""
-            echo $tgtfile $msg | bash   # this is how we get params handled right
+            echo -e $tgtfile $msg | bash   # this is how we get params handled right
             ;;
         *)
             cp -av $srcfile $tgtfile
