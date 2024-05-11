@@ -44,31 +44,7 @@ declare -A relatime     # an associative array of relative times for hashes
 do_getfileinfo() {
     intype=$1
     infile=$2
-## old style: git blame | awk
-#    # the core info we want is within git blame | awk
-#    # (author time (epoch time), hash, authorname, summary text
-#    # INFILE added to awk - it's now the file OR top directory
-#    git blame --line-porcelain $infile | awk -v INFILE=${infile%%/*}  '
-#        {
-#            if (/^author-time /) { 
-#                authtime=$2
-#            }
-#            if (/^[0-9a-z]{40} /) {
-#                ghash=$1
-#            }
-#            if (/^author /) { 
-#                authname=$2" "$3" "$4" "$5" "$6
-#            }
-#            if (/^summary /) { 
-#                printf INFILE"	"authtime"	"ghash"	"authname"	"
-#                $1="";print 
-#            } 
-#        }' | sort -gr | head -1 
-#        # this sort|head gets the newest edit for that file
-#        # ...it could probably be done within the awk with more effort
-
-## new style: git log 
-# note: there are TABs within this for the output
+    # note: there are TABs within this for the output
     subjecttime=$(git log -n 1 --format=format:'%s	%ar' $infile | head -n 1)
     echo "$intype	$infile	$subjecttime"
 }
@@ -94,62 +70,23 @@ done < <(git log --abbrev-commit --abbrev=10 --format=format:"%an	%h	%ar	%s" --a
 # and our loop finished with $num set to our count of commits. 
 printf "$greyback $white%-12s $boldwhite%-28s $green✔ $yellow%7s %14s $white%3s commits $reset\n" ${titleline[an]:0:12} ${titleline[s]:0:28} ${titleline[h]:0:7} ${titleline[ar]:0:14} $num
 
-# TODO: the above should be smarter, and only apply when we have a .git directory
-# ...if we don't, we should instead do a subdirectory status (disabled below because bugs)
+# TODO: sanity check the status line behaviour when we're in a subdirectory got the git repo 
+#   ...target = similar to github (what do gitea? gitlab? others? look like?)
 
-
-# directories and files all handled by this. assumes files don't have newlines
-#while read fname ttime ghash authorname summary ; do   # git blame|awk style
-while read ftype fname subject time ; do    # git follow style
-#    if [ -n "$ghash" ] ; then   # this is such a kludge to check if a file is known to the repo
-#        shrthash=${ghash:0:10}
-        # then we only echo the first one... 
-        # (for files this all does nothing, basically)
-#        if [ $fname != $fnameprev ] ; then
-            # TODO: option to switch between emoji and ascii directory symbol
-#            typ="🗎" ; [ -d "$fname" ] && typ="🖿" # folder or file?
-#            typ="-" ; [ -d "$fname" ] && typ="d" # folder or file?
-            typ=$ftype
-            [ $ftype == "f" ] && typ="-"
-            # TODO: option to switch between relative and absolute time
-            # TODO: detect if name/summary are truncated and append "…"  
-#            printf "%-3s %-20s %-36s %17s\n" $typ ${fname:0:20} ${summary:0:36} $(date -d @$ttime +"%F %T")
-#            # TODO: if it's a folder, I dont print anything till I know the newest subject/time of all files within that folder
-            printf "%-2s %-16s $teal%-45s $yellow%14s$reset\n" $typ ${fname:0:16} ${subject:0:45} ${time:0:14}
-#        fi
-        # TODO/BUG: this dirline info doesn't escape this loop while the loop |sort-V. 
-        # ...but without the sort-V, the ordering is rubbish
-#        if [ $ttime -gt $ttimenewest ] ; then
-#            ttimenewest=$ttime
-#            dirline[an]=$authorname
-#            dirline[s]=$summary
-#            dirline[h]=$shrthash
-#            dirline[ar]=${relatime[a$shrthash]}
-    # printf "$greyback $white%-16s $boldwhite%-20s $green✔ $yellow%8s %-10s$reset\n" ${dirline[an]} ${dirline[s]} ${dirline[h]} ${dirline[ar]}
-#        fi
-#    fi
-#    fnameprev=$fname
+while read ftype fname subject time ; do    # 
+    # TODO: option to switch between emoji and ascii directory symbol
+#    typ="🗎" ; [ -d "$fname" ] && typ="🖿" # folder or file?
+#    typ="-" ; [ -d "$fname" ] && typ="d" # folder or file?
+    typ=$ftype
+    [ $ftype == "f" ] && typ="-"
+    # TODO: option to switch between relative and absolute time
+    # TODO: detect if name/summary are truncated and append "…"  
+#   printf "%-3s %-20s %-36s %17s\n" $typ ${fname:0:20} ${summary:0:36} $(date -d @$ttime +"%F %T")
+    printf "%-2s %-16s $teal%-45s $yellow%14s$reset\n" $typ ${fname:0:16} ${subject:0:45} ${time:0:14}
 done < <(find . -mindepth 1 -maxdepth 1 -not -name '.git' -printf "%Y	%P\n" | sort -V | while read ft fn ; do
             do_getfileinfo $ft "${fn}" 2>/dev/null
         done) 
 
-# sort-gr within the subshell is to get the multiple dir entries ordered so the
-# loop above can get first of each. Makes no impact on files.
-# sort-V outside hte subshell gives us our final order - similar to github
-
-### TODO 
-# 
-## Bugs:
-# * This should have a subdirectory specific status line (mimicking github),
-#   but |sort-V above makes $dirline array be unavailable outside the loop
-#   ...making this pointless:
-#       printf "$greyback $white%-16s $boldwhite%-20s $green✔ $yellow%8s %-10s$reset\n" ${dirline[an]} ${dirline[s]} ${dirline[h]} ${dirline[ar]}
-#   The statusline works without the |sort-V, but at the sacrifice of a nicely
-# sorted list
-#
-#   ideal case: select between git and directory level statuslines
-#   automatically, and then have the listing correct thereafter.  selecting
-#   between should be a matter of looking for a .git directory
 
 ## TODO: 
 # * would be neat to handle this way better than designed-for-80column
