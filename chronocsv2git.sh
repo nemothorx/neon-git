@@ -60,7 +60,10 @@ ctrlfile=chronogit    # this is a prefix. actual files have csv or md suffix
 
 if [ ! -e $ctrlfile.csv ] ; then
     echo "! no csvfile found (expecting $ctrlfile.csv))
-Exiting with nothing to do"
+Please read the comments in the source for $0 for format of csv
+    - by convention, chronogit.csv
+    - it will generate a chronogit.md to suit
+For now however: Exiting with nothing to do"
     exit 1
 fi
 

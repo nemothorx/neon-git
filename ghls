@@ -5,23 +5,25 @@
 # This script gives a listing reminiscent of github (and similar) interfaces:
 # filename ~ descripton of last commit against this file ~ date of commit
 #
-# It works by parsing the output of `git log` (once) and `git blame` (once for
-# every file). It is not optimal, but it works for the smaller repos I have :)
+# It works by parsing the output of `git log` (once) and `git log <file>` (once
+# for every file). It's not optimal but works reasonably well for moderate
+# sized repos (but prob not good for linux kernel sort of thing!)
 #
 
 # Check if we're even in a git repo and tell us about it
 git status 2>/dev/null
 case $? in 
     128) 
-        echo "* Not a git repo. Have a normal directory listing"
+        echo "* Not a git repo. Have directory listing from ls"
         echo ""
         # in a similarish order to github though
-        ls -oh --group-directories-first 
+        ls -ohA --group-directories-first 
         exit
+        # TODO: consider having custom output matching the rest of the style?
         ;;
 esac
 
-export IFS="	"   # tab the IFS for parsing sanity later
+export IFS="	"   # tab only for IFS - for parsing sanity later
 
 # setup some default variables for later compare
 fnameprev=".non.null.string"    # musn't match a dir name, hence dotfile style
@@ -39,29 +41,36 @@ declare -A titleline    # an associative array for the git repo summary line
 declare -A dirline    # an associative array for the directory summary line
 declare -A relatime     # an associative array of relative times for hashes
 
-do_getblameinfo() {
-    infile=$1
-    # the core info we want is within git blame | awk 
-    # (author time (epoch time), hash, authorname, summary text
-    # INFILE added to awk - it's now the file OR top directory
-    git blame --line-porcelain $infile | awk -v INFILE=${infile%%/*}  '
-        {
-            if (/^author-time /) { 
-                authtime=$2
-            }
-            if (/^[0-9a-z]{40} /) {
-                ghash=$1
-            }
-            if (/^author /) { 
-                authname=$2" "$3" "$4" "$5" "$6
-            }
-            if (/^summary /) { 
-                printf INFILE"	"authtime"	"ghash"	"authname"	"
-                $1="";print 
-            } 
-        }' | sort -gr | head -1 
-        # this sort|head gets the newest edit for that file
-        # ...it could probably be done within the awk with more effort
+do_getfileinfo() {
+    intype=$1
+    infile=$2
+## old style: git blame | awk
+#    # the core info we want is within git blame | awk
+#    # (author time (epoch time), hash, authorname, summary text
+#    # INFILE added to awk - it's now the file OR top directory
+#    git blame --line-porcelain $infile | awk -v INFILE=${infile%%/*}  '
+#        {
+#            if (/^author-time /) { 
+#                authtime=$2
+#            }
+#            if (/^[0-9a-z]{40} /) {
+#                ghash=$1
+#            }
+#            if (/^author /) { 
+#                authname=$2" "$3" "$4" "$5" "$6
+#            }
+#            if (/^summary /) { 
+#                printf INFILE"	"authtime"	"ghash"	"authname"	"
+#                $1="";print 
+#            } 
+#        }' | sort -gr | head -1 
+#        # this sort|head gets the newest edit for that file
+#        # ...it could probably be done within the awk with more effort
+
+## new style: git log 
+# note: there are TABs within this for the output
+    subjecttime=$(git log -n 1 --format=format:'%s	%ar' $infile | head -n 1)
+    echo "$intype	$infile	$subjecttime"
 }
 
 
@@ -83,42 +92,46 @@ while read num authorname githash authorreltime summary; do
 done < <(git log --abbrev-commit --abbrev=10 --format=format:"%an	%h	%ar	%s" --all | cat -n | sed -e 's/^\s*//g')
 
 # and our loop finished with $num set to our count of commits. 
-printf "$greyback $white%-12s $boldwhite%-28s $green✔ $yellow%7s %14s $white%3s commits$reset\n" ${titleline[an]:0:12} ${titleline[s]:0:28} ${titleline[h]:0:7} ${titleline[ar]:0:14} $num
+printf "$greyback $white%-12s $boldwhite%-28s $green✔ $yellow%7s %14s $white%3s commits $reset\n" ${titleline[an]:0:12} ${titleline[s]:0:28} ${titleline[h]:0:7} ${titleline[ar]:0:14} $num
 
 # TODO: the above should be smarter, and only apply when we have a .git directory
 # ...if we don't, we should instead do a subdirectory status (disabled below because bugs)
 
 
 # directories and files all handled by this. assumes files don't have newlines
-while read fname ttime ghash authorname summary ; do
-    if [ -n "$ghash" ] ; then   # this is such a kludge to check if a file is known to the repo
-        shrthash=${ghash:0:10}
+#while read fname ttime ghash authorname summary ; do   # git blame|awk style
+while read ftype fname subject time ; do    # git follow style
+#    if [ -n "$ghash" ] ; then   # this is such a kludge to check if a file is known to the repo
+#        shrthash=${ghash:0:10}
         # then we only echo the first one... 
         # (for files this all does nothing, basically)
-        if [ $fname != $fnameprev ] ; then
+#        if [ $fname != $fnameprev ] ; then
             # TODO: option to switch between emoji and ascii directory symbol
-#            typ="[-]" ; [ -d "$fname" ] && typ="[d]" # folder or file?
-            typ="🗎" ; [ -d "$fname" ] && typ="🖿" # folder or file?
+#            typ="🗎" ; [ -d "$fname" ] && typ="🖿" # folder or file?
+#            typ="-" ; [ -d "$fname" ] && typ="d" # folder or file?
+            typ=$ftype
+            [ $ftype == "f" ] && typ="-"
             # TODO: option to switch between relative and absolute time
             # TODO: detect if name/summary are truncated and append "…"  
 #            printf "%-3s %-20s %-36s %17s\n" $typ ${fname:0:20} ${summary:0:36} $(date -d @$ttime +"%F %T")
-            printf "%-3s %-16s $teal%-45s $yellow%14s$reset\n" $typ ${fname:0:16} ${summary:0:45} ${relatime[a$shrthash]:0:14}
-        fi
+#            # TODO: if it's a folder, I dont print anything till I know the newest subject/time of all files within that folder
+            printf "%-2s %-16s $teal%-45s $yellow%14s$reset\n" $typ ${fname:0:16} ${subject:0:45} ${time:0:14}
+#        fi
         # TODO/BUG: this dirline info doesn't escape this loop while the loop |sort-V. 
         # ...but without the sort-V, the ordering is rubbish
-        if [ $ttime -gt $ttimenewest ] ; then
-            ttimenewest=$ttime
-            dirline[an]=$authorname
-            dirline[s]=$summary
-            dirline[h]=$shrthash
-            dirline[ar]=${relatime[a$shrthash]}
+#        if [ $ttime -gt $ttimenewest ] ; then
+#            ttimenewest=$ttime
+#            dirline[an]=$authorname
+#            dirline[s]=$summary
+#            dirline[h]=$shrthash
+#            dirline[ar]=${relatime[a$shrthash]}
     # printf "$greyback $white%-16s $boldwhite%-20s $green✔ $yellow%8s %-10s$reset\n" ${dirline[an]} ${dirline[s]} ${dirline[h]} ${dirline[ar]}
-        fi
-    fi
-    fnameprev=$fname
-done < <(find -not -path '*/.*' -type f -printf "%P\n" | while read line ; do
-            do_getblameinfo "${line}" 2>/dev/null
-        done | sort -gr) | sort -V
+#        fi
+#    fi
+#    fnameprev=$fname
+done < <(find . -mindepth 1 -maxdepth 1 -not -name '.git' -printf "%Y	%P\n" | sort -V | while read ft fn ; do
+            do_getfileinfo $ft "${fn}" 2>/dev/null
+        done) 
 
 # sort-gr within the subshell is to get the multiple dir entries ordered so the
 # loop above can get first of each. Makes no impact on files.
