@@ -12,8 +12,8 @@
 
 # TODO: investigate gitea, gitlab, etc for how they show summaries too
 
-# Check if we're even in a git repo and tell us about it
-git status 2>/dev/null
+# Check if we're even in a git repo and tell us about it (in 
+git status --short --branch --show-stash 2>/dev/null
 case $? in 
     128) 
         echo "* Not a git repo. Have directory listing from ls"
@@ -92,10 +92,9 @@ while read ftype fname subject time ; do    #
     # TODO: detect if name/summary are truncated and append "…"  
 #   printf "%-3s %-20s %-36s %17s\n" $typ ${fname:0:20} ${summary:0:36} $(date -d @$ttime +"%F %T")
     printf "%-2s %-16s $teal%-45s $yellow%14s$reset\n" $typ ${fname:0:16} ${subject:0:45} ${time:0:14}
-done < <(find . -mindepth 1 -maxdepth 1 -not -name '.git' -printf "%Y	%P\n" | sort | while read ft fn ; do
+done < <(find . -mindepth 1 -maxdepth 1 -not -name '.git' -printf "%Y	%P\n" | LC_ALL=C sort | while read ft fn ; do
             do_getfileinfo $ft "${fn}" 2>/dev/null
         done) 
-
 
 ## TODO: 
 # * would be neat to handle this way better than designed-for-80column
