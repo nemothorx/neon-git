@@ -10,6 +10,8 @@
 # sized repos (but prob not good for linux kernel sort of thing!)
 #
 
+# TODO: investigate gitea, gitlab, etc for how they show summaries too
+
 # Check if we're even in a git repo and tell us about it
 git status 2>/dev/null
 case $? in 
@@ -37,9 +39,6 @@ yellow=$(tput setaf 11)
 reset=$(tput sgr0)
 greyback=$(tput setab 8)
 
-declare -A titleline    # an associative array for the git repo summary line
-declare -A dirline    # an associative array for the directory summary line
-declare -A relatime     # an associative array of relative times for hashes
 
 do_getfileinfo() {
     intype=$1
@@ -54,24 +53,19 @@ do_getfileinfo() {
 
 # first: summary line, github style
 
+commitcount=$(git rev-list HEAD --count)
+
 # note: I'm relying on `cat -n` being tab separated, to match above IFS ;)
-while read num authorname githash authorreltime summary; do
-    # summary is at the end in case it's nonexistent, which can happen
-    if [ $num -eq 1 ] ; then
-        titleline[an]=$authorname
-        titleline[s]=$summary
-        titleline[h]=$githash
-        titleline[ar]=$authorreltime
-    fi
-    # populate a hash here with friendly relative times
-    relatime[a$githash]="$authorreltime"
-done < <(git log --abbrev-commit --abbrev=10 --format=format:"%an	%h	%ar	%s" --all | cat -n | sed -e 's/^\s*//g')
+gitrepoinfo=$(git log --abbrev-commit --abbrev=10 --format=format:"%an	%h	%ar	%s" -n 1)
+authorname=$(echo "$gitrepoinfo" | cut -f 1)
+githash=$(echo "$gitrepoinfo" | cut -f 2)
+authorreltime=$(echo "$gitrepoinfo" | cut -f 3)
+summary=$(echo "$gitrepoinfo" | cut -f 4)
 
-# and our loop finished with $num set to our count of commits. 
-printf "$greyback $white%-12s $boldwhite%-28s $green✔ $yellow%7s %14s $white%3s commits $reset\n" ${titleline[an]:0:12} ${titleline[s]:0:28} ${titleline[h]:0:7} ${titleline[ar]:0:14} $num
 
-# TODO: sanity check the status line behaviour when we're in a subdirectory got the git repo 
-#   ...target = similar to github (what do gitea? gitlab? others? look like?)
+    printf "$greyback $white%-12s $boldwhite%-28s $green✔ $yellow%7s %14s $white%3s commits $reset\n" ${authorname:0:12} ${summary:0:28} ${githash:0:7} ${authorreltime:0:14} $commitcount
+
+# TODO: summaryline should be differnt when we're in a subdirectory
 
 while read ftype fname subject time ; do    # 
     # TODO: option to switch between emoji and ascii directory symbol

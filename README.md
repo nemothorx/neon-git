@@ -71,6 +71,10 @@ Usage is simply `chronocsv2git.sh`.
 With this, this repo is moving away from being git timemachine specific tools,
 and starting to be my personalised set of git tools of any form. 
 
+ghls is a "github ls". On a normal directory it runs "ls" with suitable options
+to give a listing identical to github. In a git repo, it gives commit info per
+file and directory, mimicking the github interface. 
+
 
 ## _gitconfig
 
