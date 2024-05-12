@@ -65,6 +65,8 @@ gri_commitcount=$(git rev-list HEAD --count)
     # this is more accurate than the old method of counting entries in `git log`
     # ...this way gives a smaller number but accurate to github
 
+    # TODO: the green tick has a github specific meaning which is irrelevant here
+    # so: consider some smarts to indicate something else? maybe `git status` summary?
 printf "$greyback $white%-12s $boldwhite%-28s $green✔ $yellow%7s %14s $white%3s commits $reset\n" ${gri_authorname:0:12} ${gri_summary:0:28} ${gri_hash:0:7} ${gri_authorreltime:0:14} $gri_commitcount
 
 # detect if we're in a subdirectory and give a directory-specific status
@@ -92,6 +94,8 @@ while read ftype fname subject reltime ttime ; do
 # unicode style
     [ $ftype == "d" ] && typ="🖿"
     [ $ftype == "f" ] && typ="🗎"
+    # TODO: detect if directory has a single subdirectory in it, and list that
+    #   (it's what github does)
     # TODO: detect if name/summary are truncated and append "…"  
     # TODO: user-visible option to switch between relative and absolute time
 #    time=$(date -d @$ttime +"%F %T")    # absolute time
