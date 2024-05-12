@@ -53,19 +53,34 @@ do_getfileinfo() {
 
 # first: summary line, github style
 
-commitcount=$(git rev-list HEAD --count)
+# TODO: should it be to HEAD? what if I'm in a different branch locally?
 
-# note: I'm relying on `cat -n` being tab separated, to match above IFS ;)
 gitrepoinfo=$(git log --abbrev-commit --abbrev=10 --format=format:"%an	%h	%ar	%s" -n 1)
-authorname=$(echo "$gitrepoinfo" | cut -f 1)
-githash=$(echo "$gitrepoinfo" | cut -f 2)
-authorreltime=$(echo "$gitrepoinfo" | cut -f 3)
-summary=$(echo "$gitrepoinfo" | cut -f 4)
+gri_authorname=$(echo "$gitrepoinfo" | cut -f 1)
+gri_hash=$(echo "$gitrepoinfo" | cut -f 2)
+gri_authorreltime=$(echo "$gitrepoinfo" | cut -f 3)
+gri_summary=$(echo "$gitrepoinfo" | cut -f 4)
+gri_commitcount=$(git rev-list HEAD --count)
+    # this is more accurate than the old method of counting entries in `git log`
+    # ...this way gives a smaller number but accurate to github
 
+printf "$greyback $white%-12s $boldwhite%-28s $green✔ $yellow%7s %14s $white%3s commits $reset\n" ${gri_authorname:0:12} ${gri_summary:0:28} ${gri_hash:0:7} ${gri_authorreltime:0:14} $gri_commitcount
 
-    printf "$greyback $white%-12s $boldwhite%-28s $green✔ $yellow%7s %14s $white%3s commits $reset\n" ${authorname:0:12} ${summary:0:28} ${githash:0:7} ${authorreltime:0:14} $commitcount
+# detect if we're in a subdirectory and give a directory-specific status
+# (this is rquiv to the only one github gives)
 
-# TODO: summaryline should be differnt when we're in a subdirectory
+dirdiff=$(realpath --relative-to=$(git rev-parse --show-toplevel) .)
+if [ $dirdiff != "." ] ; then
+    gitdirinfo=$(git log --abbrev-commit --abbrev=10 --format=format:"%an	%h	%ar	%s" -n 1 .)
+    gdi_authorname=$(echo "$gitdirinfo" | cut -f 1)
+    gdi_hash=$(echo "$gitdirinfo" | cut -f 2)
+    gdi_authorreltime=$(echo "$gitdirinfo" | cut -f 3)
+    gdi_summary=$(echo "$gitdirinfo" | cut -f 4)
+    echo "  $greyback$dirdiff$reset"
+    printf "  $greyback \`-> $white%-12s $boldwhite%-35s $green✔ $yellow%7s %14s $reset\n" ${gdi_authorname:0:12} ${gdi_summary:0:35} ${gdi_hash:0:7} ${gdi_authorreltime:0:14}
+fi
+
+# now give a line per directory/file found
 
 while read ftype fname subject time ; do    # 
     # TODO: option to switch between emoji and ascii directory symbol
@@ -77,7 +92,7 @@ while read ftype fname subject time ; do    #
     # TODO: detect if name/summary are truncated and append "…"  
 #   printf "%-3s %-20s %-36s %17s\n" $typ ${fname:0:20} ${summary:0:36} $(date -d @$ttime +"%F %T")
     printf "%-2s %-16s $teal%-45s $yellow%14s$reset\n" $typ ${fname:0:16} ${subject:0:45} ${time:0:14}
-done < <(find . -mindepth 1 -maxdepth 1 -not -name '.git' -printf "%Y	%P\n" | sort -V | while read ft fn ; do
+done < <(find . -mindepth 1 -maxdepth 1 -not -name '.git' -printf "%Y	%P\n" | sort | while read ft fn ; do
             do_getfileinfo $ft "${fn}" 2>/dev/null
         done) 
 
@@ -88,7 +103,8 @@ done < <(find . -mindepth 1 -maxdepth 1 -not -name '.git' -printf "%Y	%P\n" | so
 #   Instead we should calculate max string lengths for name and time, and then
 #   truncate msg to suit and then offload formatting to `|column -t`?
 # * Add feature to `touch` each file with it's newest time (and perhaps each
-#   directory with the newest file-creation-time within), so common `ls` and
-#   `find` tools can find recent (or old) files by those normal means too
+#   directory with the newest file-creation-time within), so as to bring the
+#   filesystem idea of mtime in sync with git's idea. 
+#   Thus common tools (ls/find) can find recent (or old) files by normal means 
 
 
