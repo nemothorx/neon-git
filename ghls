@@ -44,7 +44,7 @@ do_getfileinfo() {
     intype=$1
     infile=$2
     # note: there are TABs within this for the output
-    subjecttime=$(git log -n 1 --format=format:'%s	%ar' $infile | head -n 1)
+    subjecttime=$(git log -n 1 --format=format:'%s	%ar	%at' $infile | head -n 1)
     echo "$intype	$infile	$subjecttime"
 }
 
@@ -56,6 +56,7 @@ do_getfileinfo() {
 # TODO: should it be to HEAD? what if I'm in a different branch locally?
 
 gitrepoinfo=$(git log --abbrev-commit --abbrev=10 --format=format:"%an	%h	%ar	%s" -n 1)
+# TODO: absolute time option for the above
 gri_authorname=$(echo "$gitrepoinfo" | cut -f 1)
 gri_hash=$(echo "$gitrepoinfo" | cut -f 2)
 gri_authorreltime=$(echo "$gitrepoinfo" | cut -f 3)
@@ -72,6 +73,7 @@ printf "$greyback $white%-12s $boldwhite%-28s $green✔ $yellow%7s %14s $white%3
 dirdiff=$(realpath --relative-to=$(git rev-parse --show-toplevel) .)
 if [ $dirdiff != "." ] ; then
     gitdirinfo=$(git log --abbrev-commit --abbrev=10 --format=format:"%an	%h	%ar	%s" -n 1 .)
+    # TODO: absolute time option here too
     gdi_authorname=$(echo "$gitdirinfo" | cut -f 1)
     gdi_hash=$(echo "$gitdirinfo" | cut -f 2)
     gdi_authorreltime=$(echo "$gitdirinfo" | cut -f 3)
@@ -80,18 +82,21 @@ if [ $dirdiff != "." ] ; then
     printf "  $greyback \`-> $white%-12s $boldwhite%-35s $green✔ $yellow%7s %14s $reset\n" ${gdi_authorname:0:12} ${gdi_summary:0:35} ${gdi_hash:0:7} ${gdi_authorreltime:0:14}
 fi
 
-# now give a line per directory/file found
+### now give a line per directory/file found
 
-while read ftype fname subject time ; do    # 
-    # TODO: option to switch between emoji and ascii directory symbol
-#    typ="🗎" ; [ -d "$fname" ] && typ="🖿" # folder or file?
-#    typ="-" ; [ -d "$fname" ] && typ="d" # folder or file?
-    typ=$ftype
+while read ftype fname subject reltime ttime ; do
+    # TODO: option to switch between unicode and ascii directory symbol
+# ascii style (d remains d, f becomes -, matching ls style)
+    [ $ftype == "d" ] && typ="d"
     [ $ftype == "f" ] && typ="-"
-    # TODO: option to switch between relative and absolute time
+# unicode style
+    [ $ftype == "d" ] && typ="🖿"
+    [ $ftype == "f" ] && typ="🗎"
     # TODO: detect if name/summary are truncated and append "…"  
-#   printf "%-3s %-20s %-36s %17s\n" $typ ${fname:0:20} ${summary:0:36} $(date -d @$ttime +"%F %T")
-    printf "%-2s %-16s $teal%-45s $yellow%14s$reset\n" $typ ${fname:0:16} ${subject:0:45} ${time:0:14}
+    # TODO: user-visible option to switch between relative and absolute time
+#    time=$(date -d @$ttime +"%F %T")    # absolute time
+    time=$reltime   # relative time
+    printf "%-3s %-16s $teal%-44s $yellow%16s$reset\n" $typ ${fname:0:16} ${subject:0:44} ${time:0:16}
 done < <(find . -mindepth 1 -maxdepth 1 -not -name '.git' -printf "%Y	%P\n" | LC_ALL=C sort | while read ft fn ; do
             do_getfileinfo $ft "${fn}" 2>/dev/null
         done) 
