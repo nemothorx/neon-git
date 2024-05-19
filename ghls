@@ -10,6 +10,9 @@
 # sized repos (but prob not good for linux kernel sort of thing!)
 #
 
+# TODO: accept $1 as a directory or a file, and run relative to that
+#   (ie: similar to traditional `ls`)
+
 # TODO: investigate gitea, gitlab, etc for how they show summaries too
 
 # Check if we're even in a git repo and tell us about it (in 
