@@ -29,7 +29,14 @@
     fuck = "!f() { echo "This is all ${1}\\'s fault"; }; f"
 
     # these from Carlos Laviola - https://github.com/claviola
-    gru = !printf \"https://%s/commit/\" "$(git config --get remote.origin.url | sed -e 's#^git@\\(.*\\):\\(.*\\)\\.git$#\\1/\\2#')"
+#    gru = !printf \"https://%s/commit/\" "$(git config --get remote.origin.url | sed -e 's#^git@\\(.*\\):\\(.*\\)\\.git$#\\1/\\2#')"
+#    Carlos' original above handled remote.origin.url in the form of 
+#       git@github.com:nemothorx/neon-git.git
+#    My revision below also handles the form of 
+#       https://github.com/nemothorx/neon-git.gi
+#   These should work fine for gitlab too.
+#   Other git hosting solutions are not tested
+    gru = !printf \"https://%s/commit/\" "$(git config --get remote.origin.url | sed -e 's#^git@\\(.*\\):\\(.*\\)\\.git$#\\1/\\2# ; s#^https://\\(.*\\).git#\\1#')"
     ll = !git log --color --graph --pretty=format:\"%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%al>%Creset "$(git gru)%h%n\""
     sl = !git show --color --pretty=format:\"%Cred%h%Creset %s %Cgreen(%cr) %C(bold blue)<%al>%Creset%n%n"$(git gru)"%h%n%n%b\"
     #
