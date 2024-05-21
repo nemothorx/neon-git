@@ -31,13 +31,15 @@ Incidentally, git fast-import is described here: http://www-cs-students.stanford
 
 ### git-timemachine
 
-This script outputs GIT_AUTHOR_DATE and GIT_COMMITTER_DATE environment lines as
-per https://alexpeattie.com/blog/working-with-dates-in-git/
+This script outputs GIT_AUTHOR_DATE and GIT_COMMITTER_DATE environment lines matching the mtime of a file given as $1 (if none given, then it prompts for a file or date. 
+
+These env variables are described in more detail online, for eg:
+* https://alexpeattie.com/blog/working-with-dates-in-git/
+* https://www.slingacademy.com/article/how-to-tweak-git-commit-timestamps-author-committer-dates/
 
 These lines can then be copypasta as required to the local shell. 
 
-Heavy git users may enjoy an alias to turn "git-timemachine" into "git
-timemachine"
+Users may prefer an alias to turn "git-timemachine" into "git timemachine"
 
 > `git config --global alias.timemachine '!git-timemachine $3'`
 
