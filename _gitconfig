@@ -10,19 +10,29 @@
     #   https://stackoverflow.com/questions/1057564/pretty-git-branch-graphs
     # their updates here yet to be revised in, but planned
     #   https://stackoverflow.com/questions/1838873/visualizing-branch-topology-in-git/34467298#34467298
-    lg1 = log --graph --abbrev-commit --abbrev=8 --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --all
-    lg1t = log --graph --abbrev-commit --abbrev=8 --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --all --author-date-order
-    lg2 = log --graph --abbrev-commit --abbrev=8 --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n''          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)' --all
-    lg2t = log --graph --abbrev-commit --abbrev=8 --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n''          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)' --all --author-date-order
-    lg3t = log --graph --abbrev-commit --abbrev=8 --decorate --format=format:'%C(bold blue)%h%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)' --all --author-date-order
-    lg = !"git lg1"
 
+    lg = lg1
 
+    lg1 = lg1-specific --all
+    lg2 = lg2-specific --all
+    lg3 = lg3-specific --all
+    lg1t = lg1-specific --all --author-date-order
+    lg2t = lg2-specific --all --author-date-order
+    lg3t = lg3-specific --all --author-date-order
+
+    lg1-specific = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(auto)%d%C(reset)'
+    lg2-specific = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(auto)%d%C(reset)%n''          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)'
+    lg3-specific = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset) %C(bold cyan)(committed: %cD)%C(reset) %C(auto)%d%C(reset)%n''          %C(white)%s%C(reset)%n''          %C(dim white)- %an <%ae> %C(reset) %C(dim white)(committer: %cn <%ce>)%C(reset)'
+
+    lgu-specific = !git log --graph --abbrev-commit --decorate --format=format:\"%C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(auto)%d%C(reset) - %C(bold blue)"$(git gru)"%h%C(reset)\"
+
+    # this was older git where default branch upon init was 'master' and [init] block wasn't yet available
     initmain = !git init && git symbolic-ref HEAD refs/heads/main
     timemachine = !"git-timemachine $3"
     ignore = "!f() { echo $1 >> .gitignore; }; f"
     # ignore from https://devtut.github.io/git/aliases.html
 
+    # some fun/injokes. Benjamin is a friend and former colleague
     Benjamin = "!f() { echo 'git forked'; }; f"
     forked = "!f() { echo 'This is all Benjamins fault'; }; f"
     fork = "!f() { echo "This is all ${1}\\'s fault"; }; f"
@@ -35,7 +45,8 @@
 #    My revision below also handles the form of 
 #       https://github.com/nemothorx/neon-git.gi
 #   These should work fine for gitlab too.
-#   Other git hosting solutions are not tested
+#   May need to be adjusted for other git hosting solutions
+#       git.kernel.org for linux kernel fails - requires "s#git://#https://#" (easy), and retaining ".git" at the end (not easy, as github requires it gone)
     gru = !printf \"https://%s/commit/\" "$(git config --get remote.origin.url | sed -e 's#^git@\\(.*\\):\\(.*\\)\\.git$#\\1/\\2# ; s#^https://\\(.*\\).git#\\1#')"
     ll = !git log --color --graph --pretty=format:\"%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%al>%Creset "$(git gru)%h%n\""
     sl = !git show --color --pretty=format:\"%Cred%h%Creset %s %Cgreen(%cr) %C(bold blue)<%al>%Creset%n%n"$(git gru)"%h%n%n%b\"
