@@ -29,6 +29,7 @@ export IFS="	"   # tab only for IFS - for parsing sanity later
 cols=$(tput cols)   # detect terminal width
 # setup some variables for pretty colour formatting too
 greyback=$(tput setab 8)
+red=$(tput setaf 1)
 blue=$(tput setaf 4)
 white=$(tput setaf 7)
 green=$(tput setaf 10)
@@ -51,19 +52,40 @@ do_output() {
         [ $ftype == "d" ] && ftico="${boldblue}d${reset}"
         [ $ftype == "f" ] && ftico="${green}-${reset}"
     fi
+
+    # file status check strips '"' for trivial handling of files with spaces in them. Files with more complicated names may not match this simple grep, and so be incorrect (but hoping the awful sed|echo construct ensures reasonable sanity
+    fstatus=$(echo "$gstatus" | tr -d '"' | grep " $fname$" | cut -c 1-2)
+    [ -z $fstatus ] && fstatus="  "
+    # status per-file handles such quoted filenames better, but adds slowness, so not default
+#    fstatus=$(git -c color.ui=never status --porcelain "${fname}")
+#    if [ -n "${fstatus}" ] ; then
+#        fstatus1=${fstatus:0:2}
+#        fstatus2=${fstatus:3:100}
+#    else
+#        fstatus1="  "
+#        fstatus2="$fname"
+#    fi
         # ghls v1 had this scale for 80columns:
         #   printf "%-3s %-16s $teal%-44s $yellow%16s$reset\n" \
         #           $typ ${fname:0:16} ${subject:0:44} ${time:0:16}
-        printf "%-3s %-16s $teal%-44s $yellow%16s$reset\n" \
-            $ftico ${fname:0:16} ${subject:0:44} ${vintage:0:16}
+        printf "%-3s $red%2s $white%-16s $teal%-41s $yellow%16s$reset\n" \
+            $ftico $fstatus ${fname:0:16} ${subject:0:40} ${vintage:0:16}
         # echo ${#fname} ${#subject} ${#vintage}
+
+        # for dynamic width...
+        # * fname up to 16-30 - extremely unlikely to need more than that
+        # * subject up to 41-100 - linux merge subjects get that high easily
+        # * vintage up to 16-22
+        # The required fname width can be calculated reasonably easily without a performance hit in the main loop (I think), and then known to here
+        # Then shrink subject and vintage appropriately proportionally to suit the remaining space
+        # Noting that if the subject (left aligned) is short, then that should be reflected so that the vintage (right aligned) fits
     done
 }
 
 
 ### step 1: git status (and check for git repo-ness) 
 # Check if we're even in a git repo and tell us about it
-git status --short --branch --show-stash 2>/dev/null
+gstatuscol=$(git -c color.ui=always status --short --branch --show-stash 2>/dev/null)
 case $? in 
     128) 
         echo "* Not a git repo. Have directory listing from ls"
@@ -74,7 +96,10 @@ case $? in
         # TODO: consider having custom output matching ghls style? 
         ;;
 esac
-
+echo "$gstatuscol" | grep '^#' # this is the line we kept the colours for
+# now strip the colours and interpret backslash escapes
+#   yeah this looks awful, but it should ensure we can use $gstatus later on with reasonable confidence, and better than running "git status" per file
+gstatus=$(echo "$gstatuscol" | sed -r 's/\x1B\[([0-9]{1,3}(;[0-9]{1,2};?)?)?[mGK]//g ; s/\\/\\\\/g ; s/"//g ; s/"$//' | while read line ; do /bin/echo -e "$line" ; done)
 
 ### step 2: ghls status line
 
@@ -91,7 +116,7 @@ gri_commitcount=$(git rev-list HEAD --count)
     # so: consider some smarts to indicate something else? 
     #   maybe a `git status` summary?
     # also consider a two-line summary header for space reasons?
-printf "$greyback $white%-12s $boldwhite%-28s $green✔ $yellow%7s %14s $white%3s commits $reset\n" ${gri_authorname:0:12} ${gri_summary:0:28} ${gri_hash:0:7} ${gri_authtime:0:14} $gri_commitcount
+printf "$greyback $white%-12s $boldwhite%-30s $yellow%7s %14s $white%3s commits $reset\n" ${gri_authorname:0:12} ${gri_summary:0:30} ${gri_hash:0:7} ${gri_authtime:0:14} $gri_commitcount
     # TODO: make that header handle arbitrary width
 
 ### step 2a: a subdirectory-specific status line, if needed
@@ -105,8 +130,16 @@ if [ $dirdiff != "." ] ; then
     gdi_summary=$(echo "$gitdirinfo" | cut -f 2)
     gdi_hash=$(echo "$gitdirinfo" | cut -f 3)
     gdi_authtime=$(echo "$gitdirinfo" | cut -f 4)
-    echo "  $greyback$dirdiff$reset"
-    printf "  $greyback \`-> $white%-12s $boldwhite%-35s $green✔ $yellow%7s %14s $reset\n" ${gdi_authorname:0:12} ${gdi_summary:0:35} ${gdi_hash:0:7} ${gdi_authtime:0:14}
+    fstatus="--" # TODO: get correct info into this
+    [ $unicode == "yes" ] && ftico="${boldblue}🖿" || ftico="${boldblue}d"
+    # if we're in a subdir, we get a two line status on this
+        # dirname 
+        # author/summary/hash/time
+    # ...this should ensure it's identifiable as a status line even without colour
+    printf "$greyback%-3s $red%2s $white%-16s\n" \
+        $ftico $fstatus ${dirdiff:0:16}
+    printf "%-18s $boldwhite%-36s $yellow%7s $yellow%16s$reset\n" \
+         ${gdi_authorname:0:18} ${gdi_summary:0:36} ${gdi_hash:0:7} ${gdi_authtime:0:16}
 fi
 
 ### step 3: the main list
