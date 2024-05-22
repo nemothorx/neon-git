@@ -154,7 +154,7 @@ echo "$listing" | while read ftype fname ; do
     dcheck=$(echo ${fname}/*)
     [ -d ${dcheck} ] && fname=${dcheck}
 
-    echo "$ftype	$fname	$(git log -n 1 --color --format=format:"%s	%${ax}"  "$fname")"
+    echo "$ftype	$fname	$(git log -n 1 --color --format=format:"%s	%${ax}" -- "$fname")"
 done | do_output
 
 ## more TODO notes: 
