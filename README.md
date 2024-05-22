@@ -7,6 +7,23 @@ Some are my own creation. Some (mainly the gitconfig) are based on others
 (note: this repo was originally "git-timemachine" from 2020, and became
 "neon-git" in 2024 as the scope broadened)
 
+
+## _gitconfig
+
+My depersonalised gitconfig. Mainly here for the aliases. Some are practical,
+some fun. (`git lg1` is my musclememory replacement for `git log`)
+
+
+## ghls
+
+ghls is a "github ls". On a normal directory it runs "ls" with suitable options
+to give a listing identical to github. In a git repo, it gives commit info per
+file and directory, mimicking the github interface. 
+
+Note that this is the script which moved the repo away from being
+"git-timemachine" and into just being my personalised set of git helpers
+
+
 ## timemachine
 
 These are tools to help turn a directory of script archives into a git
@@ -20,7 +37,7 @@ So far, timemachine has two tools
 git-timemachine is the low level worker, with chronocsv2git being the main
 intended tool and can be thought of as an alternative to `git fast-import`, and
 (arguably) is better suited to the use case of "recovering multiple historic
-variations from backups and assembling into a repo". 
+versions from backups and assembling into a repo". 
 
 Key to it's function is that it imports files from files, with git metadata
 (git comments, branches, dates, etc) taken from a seperate CSV control file, or
@@ -81,25 +98,12 @@ running of the script is informative.
 
 **NOTE: chronocsv2.git is not considered finished. Use at own risk**
 
-A script which takes a prepared csv for a directory of historic files, and
-controls git-timemachine in adding them to a repo with suitable dates. 
+A script which takes a prepared csv (tab seperated though) referencing historic
+files, and controls git and git-timemachine to add them to a repo with suitable
+dates.
 
-Usage is simply `chronocsv2git.sh`. 
-
-
-
-## ghls
-
-ghls is a "github ls". On a normal directory it runs "ls" with suitable options
-to give a listing identical to github. In a git repo, it gives commit info per
-file and directory, mimicking the github interface. 
-
-Note that this is the script which moved the repo away from being
-"git-timemachine" and into just being my personalised set of git helpers
+Usage: prepare chronogit.csv and then simply run `chronocsv2git.sh`
 
 
-## _gitconfig
 
-My depersonalised gitconfig. Mainly here for the aliases. Some are practical,
-some fun. (`git lg1` is my musclememory replacement for `git log`)
 
