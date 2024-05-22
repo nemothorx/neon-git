@@ -10,6 +10,16 @@
 # sized repos (but prob not good for linux kernel sort of thing!)
 #
 
+# alternative to this script is this one-liner 
+# ls -1A --file-type --group-directories-first | while read entry ; do echo "$entry ~ $(git log -n 1  --format=format:'%s ~ %ar'  "$entry")" ; done | column -t -s~
+#   it has: 
+#     * no status line
+#     * no colours
+#   but
+#     * faster (by approx the time saved by skipping 'git status')
+#     * doesn't assume your terminal width is 80 characters (doesn't truncate any fields)
+
+
 # TODO: accept $1 as a directory or a file, and run relative to that
 #   (ie: similar to traditional `ls`)
 
@@ -72,7 +82,7 @@ gri_commitcount=$(git rev-list HEAD --count)
 printf "$greyback $white%-12s $boldwhite%-28s $green✔ $yellow%7s %14s $white%3s commits $reset\n" ${gri_authorname:0:12} ${gri_summary:0:28} ${gri_hash:0:7} ${gri_authorreltime:0:14} $gri_commitcount
 
 # detect if we're in a subdirectory and give a directory-specific status
-# (this is equiv to the only header line github gives)
+# (this is equiv to the only header line github gives in this type of situ)
 
 dirdiff=$(realpath --relative-to=$(git rev-parse --show-toplevel) .)
 if [ $dirdiff != "." ] ; then
