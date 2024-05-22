@@ -1,0 +1,132 @@
+#!/bin/bash
+
+# "github ls" 
+#
+# This script gives a listing reminiscent of github (and similar) interfaces:
+# filename ~ descripton of last commit against this file ~ date of commit
+#
+# It works by parsing the output of `git log` (once) and `git log <file>` (once
+# for every file). 
+
+# version2 is mostly rewrite. 
+# v1 got complex, then simplified by still on the structure of the original complexity. The end of v1 was realisation that the core could be implemented in a shell one-liner. 
+#
+# v2 learns from the past 
+
+# here is that one-liner that lacks status line and colours, but is a plausible as an alias rather than a full script. 
+# ls -1A --file-type --group-directories-first | while read entry ; do echo "$entry ~ $(git log -n 1  --format=format:'%s ~ %ar'  "$entry")" ; done | column -t -s~
+
+### step 0: some settings
+
+# options:
+ax=ar   # author timestyle that git log format uses.
+        # ar = human reaadable "relative" format    # ai = pseudo ISO 8601      
+        # aD - RFC 2822 style (email style)         # aI = strict ISO 8601
+unicode=yes     # yes = unicode symbols, no = "d" and "-" for dirs and files, 
+
+# required variables
+export IFS="	"   # tab only for IFS - for parsing sanity later
+cols=$(tput cols)   # detect terminal width
+# setup some variables for pretty colour formatting too
+greyback=$(tput setab 8)
+blue=$(tput setaf 4)
+white=$(tput setaf 7)
+green=$(tput setaf 10)
+yellow=$(tput setaf 11)
+boldblue=$(tput setaf 12)
+teal=$(tput setaf 14)
+boldwhite=$(tput setaf 15)
+reset=$(tput sgr0)
+
+
+### step 0a: some functions
+
+do_output() {
+    # column -t -s"	"
+    while read ftype fname subject vintage ; do
+    if [ $unicode == "yes" ] ; then
+        [ $ftype == "d" ] && ftico="${boldblue}🖿${reset}" 
+        [ $ftype == "f" ] && ftico="${green}🗎${reset}"
+    else    
+        [ $ftype == "d" ] && ftico="${boldblue}d${reset}"
+        [ $ftype == "f" ] && ftico="${green}-${reset}"
+    fi
+        # ghls v1 had this scale for 80columns:
+        #   printf "%-3s %-16s $teal%-44s $yellow%16s$reset\n" \
+        #           $typ ${fname:0:16} ${subject:0:44} ${time:0:16}
+        printf "%-3s %-16s $teal%-44s $yellow%16s$reset\n" \
+            $ftico ${fname:0:16} ${subject:0:44} ${vintage:0:16}
+        # echo ${#fname} ${#subject} ${#vintage}
+    done
+}
+
+
+### step 1: git status (and check for git repo-ness) 
+# Check if we're even in a git repo and tell us about it
+git status --short --branch --show-stash 2>/dev/null
+case $? in 
+    128) 
+        echo "* Not a git repo. Have directory listing from ls"
+        echo ""
+        # in a similarish order to github though
+        ls -ohA --group-directories-first 
+        exit
+        # TODO: consider having custom output matching ghls style? 
+        ;;
+esac
+
+
+### step 2: ghls status line
+
+gitrepoinfo=$(git log --abbrev-commit --abbrev=10 --format=format:"%an	%s	%h	%${ax}" -n 1)
+# gri = git repo info
+gri_authorname=$(echo "$gitrepoinfo" | cut -f 1)
+gri_summary=$(echo "$gitrepoinfo" | cut -f 2)
+gri_hash=$(echo "$gitrepoinfo" | cut -f 3)
+gri_authtime=$(echo "$gitrepoinfo" | cut -f 4)
+gri_commitcount=$(git rev-list HEAD --count)
+    # NOTE: commitcount not checked for sanity if we're in a different branch
+
+    # TODO: the green tick has a github specific meaning which is irrelevant here
+    # so: consider some smarts to indicate something else? 
+    #   maybe a `git status` summary?
+    # also consider a two-line summary header for space reasons?
+printf "$greyback $white%-12s $boldwhite%-28s $green✔ $yellow%7s %14s $white%3s commits $reset\n" ${gri_authorname:0:12} ${gri_summary:0:28} ${gri_hash:0:7} ${gri_authtime:0:14} $gri_commitcount
+    # TODO: make that header handle arbitrary width
+
+### step 2a: a subdirectory-specific status line, if needed
+# (this is equiv to the only header line github gives in this type of situ)
+
+dirdiff=$(realpath --relative-to=$(git rev-parse --show-toplevel) .)
+if [ $dirdiff != "." ] ; then
+    gitdirinfo=$(git log --abbrev-commit --abbrev=10 --format=format:"%an	%s	%h	%${ax}" -n 1 .)
+    # gdi = dit directory info
+    gdi_authorname=$(echo "$gitdirinfo" | cut -f 1)
+    gdi_summary=$(echo "$gitdirinfo" | cut -f 2)
+    gdi_hash=$(echo "$gitdirinfo" | cut -f 3)
+    gdi_authtime=$(echo "$gitdirinfo" | cut -f 4)
+    echo "  $greyback$dirdiff$reset"
+    printf "  $greyback \`-> $white%-12s $boldwhite%-35s $green✔ $yellow%7s %14s $reset\n" ${gdi_authorname:0:12} ${gdi_summary:0:35} ${gdi_hash:0:7} ${gdi_authtime:0:14}
+fi
+
+### step 3: the main list
+
+find . -mindepth 1 -maxdepth 1 -not -name '.git' -printf "%Y	%P\n" | LC_ALL=C sort | while read ftype fname ; do
+    # TODO: have it exclude smartly according to .gitignore entries
+
+    # if a directory contains a single subdirectory, then we display that too
+    dcheck=$(echo ${fname}/*)
+    [ -d ${dcheck} ] && fname=${dcheck}
+
+    echo "$ftype	$fname	$(git log -n 1 --color --format=format:"%s	%${ax}"  "$fname")"
+done | do_output
+
+## more TODO notes: 
+# * accept $1 as a directory or a file, and run relative to that
+#   (ie: similar to traditional `ls`)
+# * investigate gitea, gitlab, etc for how they show summaries too
+# * dont assume 80 column terminals. scale info to suit when wider
+# * Add feature to `touch` each file with it's newest time (and perhaps each
+#   directory with the newest file-creation-time within), so as to bring the
+#   filesystem idea of mtime in sync with git's idea. 
+#   Thus common tools (ls/find) can find recent (or old) files by normal means 
