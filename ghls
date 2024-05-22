@@ -30,9 +30,6 @@ esac
 
 export IFS="	"   # tab only for IFS - for parsing sanity later
 
-# setup some default variables for later compare
-fnameprev=".non.null.string"    # musn't match a dir name, hence dotfile style
-ttimenewest=1   # newer times will be bigger numbers
 # setup some variables for pretty colour formatting too
 white=$(tput setaf 7)
 boldwhite=$(tput setaf 15)
@@ -42,6 +39,8 @@ yellow=$(tput setaf 11)
 reset=$(tput sgr0)
 greyback=$(tput setab 8)
 
+
+######################### functions to use
 
 do_getfileinfo() {
     intype=$1
@@ -56,10 +55,8 @@ do_getfileinfo() {
 
 # first: summary line, github style
 
-# TODO: should it be to HEAD? what if I'm in a different branch locally?
-
 gitrepoinfo=$(git log --abbrev-commit --abbrev=10 --format=format:"%an	%h	%ar	%s" -n 1)
-# TODO: absolute time option for the above
+# gri = git repo info
 gri_authorname=$(echo "$gitrepoinfo" | cut -f 1)
 gri_hash=$(echo "$gitrepoinfo" | cut -f 2)
 gri_authorreltime=$(echo "$gitrepoinfo" | cut -f 3)
@@ -67,18 +64,20 @@ gri_summary=$(echo "$gitrepoinfo" | cut -f 4)
 gri_commitcount=$(git rev-list HEAD --count)
     # this is more accurate than the old method of counting entries in `git log`
     # ...this way gives a smaller number but accurate to github
+    # NOTE: not checked for sanity if we're in a different branch
 
     # TODO: the green tick has a github specific meaning which is irrelevant here
-    # so: consider some smarts to indicate something else? maybe `git status` summary?
+    # so: consider some smarts to indicate something else? 
+    #   maybe a `git status` summary?
 printf "$greyback $white%-12s $boldwhite%-28s $green✔ $yellow%7s %14s $white%3s commits $reset\n" ${gri_authorname:0:12} ${gri_summary:0:28} ${gri_hash:0:7} ${gri_authorreltime:0:14} $gri_commitcount
 
 # detect if we're in a subdirectory and give a directory-specific status
-# (this is rquiv to the only one github gives)
+# (this is equiv to the only header line github gives)
 
 dirdiff=$(realpath --relative-to=$(git rev-parse --show-toplevel) .)
 if [ $dirdiff != "." ] ; then
     gitdirinfo=$(git log --abbrev-commit --abbrev=10 --format=format:"%an	%h	%ar	%s" -n 1 .)
-    # TODO: absolute time option here too
+    # gdi = dit directory info
     gdi_authorname=$(echo "$gitdirinfo" | cut -f 1)
     gdi_hash=$(echo "$gitdirinfo" | cut -f 2)
     gdi_authorreltime=$(echo "$gitdirinfo" | cut -f 3)
@@ -92,15 +91,12 @@ fi
 while read ftype fname subject reltime ttime ; do
     # TODO: option to switch between unicode and ascii directory symbol
 # ascii style (d remains d, f becomes -, matching ls style)
-    [ $ftype == "d" ] && typ="d"
-    [ $ftype == "f" ] && typ="-"
+    # [ $ftype == "d" ] && typ="d" ; [ $ftype == "f" ] && typ="-"
 # unicode style
-    [ $ftype == "d" ] && typ="🖿"
-    [ $ftype == "f" ] && typ="🗎"
+    [ $ftype == "d" ] && typ="🖿" ; [ $ftype == "f" ] && typ="🗎"
     # TODO: detect if directory has a single subdirectory in it, and list that
     #   (it's what github does)
     # TODO: detect if name/summary are truncated and append "…"  
-    # TODO: user-visible option to switch between relative and absolute time
 #    time=$(date -d @$ttime +"%F %T")    # absolute time
     time=$reltime   # relative time
     printf "%-3s %-16s $teal%-44s $yellow%16s$reset\n" $typ ${fname:0:16} ${subject:0:44} ${time:0:16}
@@ -108,14 +104,14 @@ done < <(find . -mindepth 1 -maxdepth 1 -not -name '.git' -printf "%Y	%P\n" | LC
             do_getfileinfo $ft "${fn}" 2>/dev/null
         done) 
 
-## TODO: 
+## more TODO notes: 
 # * would be neat to handle this way better than designed-for-80column
 #   hardcoded printf. 
 #   Instead we should calculate max string lengths for name and time, and then
-#   truncate msg to suit and then offload formatting to `|column -t`?
+#   truncate msg to suit and maybe offload formatting to `|column -t`?
 # * Add feature to `touch` each file with it's newest time (and perhaps each
 #   directory with the newest file-creation-time within), so as to bring the
 #   filesystem idea of mtime in sync with git's idea. 
 #   Thus common tools (ls/find) can find recent (or old) files by normal means 
-
+# * option to display time as an absolute, rather than human friendly
 
