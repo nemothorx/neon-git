@@ -26,7 +26,6 @@ unicode=yes     # yes = unicode symbols, no = "d" and "-" for dirs and files,
 
 # required variables
 export IFS="	"   # tab only for IFS - for parsing sanity later
-cols=$(tput cols)   # detect terminal width
 # setup some variables for pretty colour formatting too
 greyback=$(tput setab 8)
 red=$(tput setaf 1)
@@ -38,6 +37,9 @@ boldblue=$(tput setaf 12)
 teal=$(tput setaf 14)
 boldwhite=$(tput setaf 15)
 reset=$(tput sgr0)
+cols=$(tput cols)   # detect terminal width
+    # output is coded to be sane at 80+. No provision for thinner than 80 cols
+wbuffer=$((cols-80))
 
 
 ### step 0a: some functions
@@ -68,17 +70,19 @@ do_output() {
         # ghls v1 had this scale for 80columns:
         #   printf "%-3s %-16s $teal%-44s $yellow%16s$reset\n" \
         #           $typ ${fname:0:16} ${subject:0:44} ${time:0:16}
-        printf "%-3s $red%2s $white%-16s $teal%-41s $yellow%16s$reset\n" \
-            $ftico $fstatus ${fname:0:16} ${subject:0:40} ${vintage:0:16}
-        # echo ${#fname} ${#subject} ${#vintage}
 
+        # v2 handles width dynamically. 
         # for dynamic width...
         # * fname up to 16-30 - extremely unlikely to need more than that
         # * subject up to 41-100 - linux merge subjects get that high easily
         # * vintage up to 16-22
-        # The required fname width can be calculated reasonably easily without a performance hit in the main loop (I think), and then known to here
-        # Then shrink subject and vintage appropriately proportionally to suit the remaining space
-        # Noting that if the subject (left aligned) is short, then that should be reflected so that the vintage (right aligned) fits
+        # The maximum filename length is pre-calculated and stored in maxfwidth
+        # Shrink subject and vintage appropriately proportionally to suit the remaining space, but expand using any width excess of 80 cols - the width buffer, stored in wbuffer
+        # Note that if the subject (left aligned) is short, then that should be reflected so that the vintage (right aligned) fits even if it might not otherwise be given space
+        swidth="$((57-maxfwidth+wbuffer))"
+        printf "%-3s $red%2s $white%-${maxfwidth}s $teal%-${swidth}s $yellow%16s$reset\n" \
+            $ftico $fstatus ${fname:0:$maxfwidth} ${subject:0:$swidth} ${vintage:0:16}
+
     done
 }
 
@@ -112,10 +116,7 @@ gri_authtime=$(echo "$gitrepoinfo" | cut -f 4)
 gri_commitcount=$(git rev-list HEAD --count)
     # NOTE: commitcount not checked for sanity if we're in a different branch
 
-    # TODO: the green tick has a github specific meaning which is irrelevant here
-    # so: consider some smarts to indicate something else? 
-    #   maybe a `git status` summary?
-    # also consider a two-line summary header for space reasons?
+    # consider a two-line summary header for space reasons?
 printf "$greyback $white%-12s $boldwhite%-30s $yellow%7s %14s $white%3s commits $reset\n" ${gri_authorname:0:12} ${gri_summary:0:30} ${gri_hash:0:7} ${gri_authtime:0:14} $gri_commitcount
     # TODO: make that header handle arbitrary width
 
@@ -144,7 +145,9 @@ fi
 
 ### step 3: the main list
 
-find . -mindepth 1 -maxdepth 1 -not -name '.git' -printf "%Y	%P\n" | LC_ALL=C sort | while read ftype fname ; do
+listing=$(find . -mindepth 1 -maxdepth 1 -not -name '.git' -printf "%Y	%P\n" | LC_ALL=C sort)
+maxfwidth=$(echo "$listing" | cut -f 2 |  wc -L)
+echo "$listing" | while read ftype fname ; do
     # TODO: have it exclude smartly according to .gitignore entries
 
     # if a directory contains a single subdirectory, then we display that too
