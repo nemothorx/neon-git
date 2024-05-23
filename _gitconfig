@@ -51,3 +51,9 @@
     ll = !git log --color --graph --pretty=format:\"%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%al>%Creset "$(git gru)%h%n\""
     sl = !git show --color --pretty=format:\"%Cred%h%Creset %s %Cgreen(%cr) %C(bold blue)<%al>%Creset%n%n"$(git gru)"%h%n%n%b\"
     #
+
+    # github style ls - alias version
+    # note: this ALWAYS runs from the root of the repo. Unsure if this can be changed
+    # the standalone ghls scripts run from the PWD as expected
+    ghls = "!git status --short --branch --show-stash 2>/dev/null ; /bin/pwd ; ls -1A --file-type --group-directories-first | grep -v '.git/' | while read entry ; do echo \"$entry ~ $(git -c color.ui=always log -n 1  --format=format:\"%C(bold cyan)%s ~ %C(yellow)%ar%C(reset)\" -- \"$entry\")\" ; done | column -t -s~"
+
