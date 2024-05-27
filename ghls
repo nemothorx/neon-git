@@ -56,7 +56,7 @@ do_getfileinfo() {
     intype=$1
     infile=$2
     # note: there are TABs within this for the output
-    subjecttime=$(git log -n 1 --format=format:'%s	%ar	%at' $infile | head -n 1)
+    subjecttime=$(git log -n 1 --format=format:'%s	%ar	%at' -- $infile | head -n 1)
     echo "$intype	$infile	$subjecttime"
 }
 
@@ -86,7 +86,7 @@ printf "$greyback $white%-12s $boldwhite%-28s $green✔ $yellow%7s %14s $white%3
 
 dirdiff=$(realpath --relative-to=$(git rev-parse --show-toplevel) .)
 if [ $dirdiff != "." ] ; then
-    gitdirinfo=$(git log --abbrev-commit --abbrev=10 --format=format:"%an	%h	%ar	%s" -n 1 .)
+    gitdirinfo=$(git log --abbrev-commit --abbrev=10 --format=format:"%an	%h	%ar	%s" -n 1 -- .)
     # gdi = dit directory info
     gdi_authorname=$(echo "$gitdirinfo" | cut -f 1)
     gdi_hash=$(echo "$gitdirinfo" | cut -f 2)
