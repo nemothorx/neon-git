@@ -5,7 +5,7 @@
 # following format
 # 
 # src_filename tgt_filename commit message(which, may be\n\n"complex"))
-# $,ls,-r,-o,-t
+# $ ls -r -o -t
 #
 # * note1: headerless CSV
 # * note2: if field 1 is "$" then field2 is a command and field3+ are options
@@ -40,8 +40,9 @@
 
 # HOW IT WORKS
 # The script will process chronogit.csv line by line, cp -a each source_filename
-# to the target_filename, then git-timemachine that to set timing, then git add
-# and commit it. 
+# to the target_filename, then git add it. 
+# If there is a 'msg', then git-timemachine sets the timing from the file, 
+# and then commits with that msg. 
 # 
 # WHAT IT DOES NOT DO DIRECTLY
 # * does not create the git repo itself
@@ -115,10 +116,6 @@ echo ""
 #### pass 2: do the git-thing
 
 while read srcfile tgtfile msg ; do
-    # note: any "," in $msg are converted to " " if referenced as $msg
-    # ...but keep the commas if referenced as "$msg". (ie, quoted)
-    # ...this impacts ability to use $msg as options - as it cannot be quoted,
-    #   commas are not accepted in options of command instructions
     case $srcfile in
         "$")
             echo ":: executing "$tgtfile $msg""
