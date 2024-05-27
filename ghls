@@ -11,7 +11,7 @@
 #
 
 # alternative to this script is this one-liner 
-# ls -1A --file-type --group-directories-first | while read entry ; do echo "$entry ~ $(git log -n 1  --format=format:'%s ~ %ar'  "$entry")" ; done | column -t -s~
+# ls -1A --file-type --group-directories-first | while read entry ; do echo "$entry ~ $(git log -n 1  --format=format:'%s ~ %ar' -- "$entry")" ; done | column -t -s~
 #   it has: 
 #     * no status line
 #     * no colours
