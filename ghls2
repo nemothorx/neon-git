@@ -57,6 +57,8 @@ do_output() {
 
     # file status check strips '"' for trivial handling of files with spaces in them. Files with more complicated names may not match this simple grep, and so be incorrect (but hoping the awful sed|echo construct ensures reasonable sanity
     fstatus=$(echo "$gstatus" | tr -d '"' | grep " $fname$" | cut -c 1-2)
+        # BUG: fstatus does not handle finding Modifications within a directory
+        # BUG: status column colours do not match that from git status
     [ -z $fstatus ] && fstatus="  "
     # status per-file handles such quoted filenames better, but adds slowness, so not default
 #    fstatus=$(git -c color.ui=never status --porcelain "${fname}")

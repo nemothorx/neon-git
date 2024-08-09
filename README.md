@@ -20,8 +20,31 @@ ghls is a "github ls". On a normal directory it runs "ls" with suitable options
 to give a listing identical to github. In a git repo, it gives commit info per
 file and directory, mimicking the github interface. 
 
+Two versions `ghls` and `ghls2` exist. 
+
+* ghls
+  - a little more verbose
+  - includes info about modified files in subdirectories
+* ghls2 
+  - cleaner code via rewrite
+  - cleaner output is not hardcoded to 80 column width
+  - missing indication of modified files within subdirectories
+
 Note that this is the script which moved the repo away from being
 "git-timemachine" and into just being my personalised set of git helpers
+
+
+## git-trawl
+
+scrape all unique revisions of a file from git commits, giving each a unique
+name within "_raw" path. 
+
+
+# git-automsg
+
+Generate a git commit message suitable for auto commits. It generates a message
+that is a hybrid of `git status` and `git diff`, making reading this info easier
+for future casual reading of `git log`
 
 
 ## timemachine

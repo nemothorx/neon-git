@@ -125,8 +125,10 @@ while read srcfile tgtfile msg ; do
             cp -av $srcfile $tgtfile
             git add $tgtfile
             if [ -n "$msg" ] ; then
-                eval $(git timemachine $tgtfile)
-                git commit -a -m "$(echo -e "${msg}")"
+                eval $(git timemachine $tgtfile) # set the time of commit
+                commitmsg=$(echo -e "${msg}") # msg from the chronogit.csv
+                finalmsg="$(git-automsg.sh "$commitmsg")" # git-automsg adds statistics to the msg
+                git commit -a -m "$finalmsg"
                 echo ""
             fi
             ;;
