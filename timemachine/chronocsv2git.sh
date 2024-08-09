@@ -109,7 +109,7 @@ ls -rotR --full-time >> $ctrlfile.md
 
 git add $ctrlfile.csv
 git add $ctrlfile.md
-git commit -a -m "chronocsv2git begin: adding chronogit.csv and chronogit.md"
+git commit -a -m "$(git-automsg.sh "chronocsv2git begin: adding chronogit.csv and chronogit.md")"
 echo ""
 
 

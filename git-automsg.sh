@@ -30,12 +30,19 @@
 #   and so made this script redundant, that'd be great!
 
 # git compactsummary is our core info. Run `git` once for this
-git_cs=$(git diff ^HEAD --compact-summary --stat=64)
+git_cs=$(git diff ^HEAD --compact-summary --stat=64 2>/dev/null)
 
-# If it's empty, then we silently bail as nothing had changed.
-# If we're run within `git -m "$(git-automsg.sh)"` then the parent git will
-# also fail to commit without a message. 
+# If it's empty, then we're either the very first commit of the repo, or nothing has changed
+# the "empty intitial repo" is the magic 4b825dc642cb6eb9a060e54bf8d69288fbee4904 (in SHA1 anyway)
+#   (but we generate it on the fly for futureproofing)
+#       this info from https://jiby.tech/post/git-diff-empty-repo/
+[ -z "$git_cs" ] && git_cs=$(git diff $(printf '' | git hash-object -t tree --stdin) --compact-summary --stat=64 2>/dev/null)
+
+# If it's STILL empty, then nothing has changed and we exit silently
+# Note that if we're run within `git -m "$(git-automsg.sh)"` then the
+# parent git will now fail to commit without a message. 
 [ -z "$git_cs" ] && exit
+
 
 # Grab the summary of the summary from the last line
 git_cs_summary=$(echo "$git_cs" | tail -n 1)
