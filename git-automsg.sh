@@ -6,6 +6,9 @@
 # or
 #   git commit -m "$(git-automsg.sh "My own commit message")"
 
+# git-automsg.sh can be safely run by hand in a repo at any time
+# as it only performs reads on the repo
+
 
 # The idea here is to generate an informative commit message suitable
 # for autocommit setups, and better than a generic "this is an ato commit"
