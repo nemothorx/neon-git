@@ -11,7 +11,9 @@ Some are my own creation. Some (mainly the gitconfig) are based on others
 ## _gitconfig
 
 My depersonalised gitconfig. Mainly here for the aliases. Some are practical,
-some fun. (`git lg1` is my musclememory replacement for `git log`)
+some fun. (`git lg1` is my musclememory replacement for `git log`).
+
+It's not nescessarily a clean or well documented config
 
 
 ## ghls
