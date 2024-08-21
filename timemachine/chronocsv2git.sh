@@ -69,13 +69,14 @@ For now however: Exiting with nothing to do"
 fi
 
 if [ ! -d ".git" ] ; then
-    echo "! Not yet a git repo. I dont do that step. please fix (git initmain ?)"
+    echo "! Not yet a git repo. I dont do that step. please fix (git init ?)"
     exit 2
 fi
 
 
 #### pass 1:  sanity check csvfile
 # ensure all col1 exist as files or commands
+# TODO: ensure all col1 files have a filename in col2 also
 # and all col3 are non-zero
 
 echo "## Testing all targets are commands or non-existent files"
@@ -89,7 +90,8 @@ while read srcfile tgtfile msg ; do
             ;;
         *)
             [ ! -e "$srcfile" ] && echo "! src $srcfile not found. Fix $ctrlfile.csv" && exit 4
-            [ -e "$tgtfile" ] && echo "! $tgtfile already exists. Refusing to blat it with $srcfile. pls fix" && exit 5
+            [ -z "$tgtfile" ] && echo "! $srcfile has no target. Bailing now" && exit 5
+            [ -e "$tgtfile" ] && echo "! $tgtfile already exists. Refusing to blat it with $srcfile. pls fix" && exit 6
             ;;
     esac
 done < <(cat $ctrlfile.csv | grep -v '^#' | grep . )
