@@ -9,6 +9,8 @@
 # git-automsg.sh can be safely run by hand in a repo at any time
 # as it only performs reads on the repo
 
+# HOWEVER, if this is called as "git-autocommit.sh" then instead of echoing the generated msg, it performs 'git commit -a -m "finalmsg"'
+
 
 # The idea here is to generate an informative commit message suitable
 # for autocommit setups, and better than a generic "this is an ato commit"
@@ -37,6 +39,7 @@ git_cs=$(git diff ^HEAD --compact-summary --stat=64 2>/dev/null)
 #   (but we generate it on the fly for futureproofing)
 #       this info from https://jiby.tech/post/git-diff-empty-repo/
 [ -z "$git_cs" ] && git_cs=$(git diff $(printf '' | git hash-object -t tree --stdin) --compact-summary --stat=64 2>/dev/null)
+# TODO/BUG: the above also triggers when there are no changes. We should detect that and exit early
 
 # If it's STILL empty, then nothing has changed and we exit silently
 # Note that if we're run within `git -m "$(git-automsg.sh)"` then the
@@ -77,5 +80,13 @@ else
 $git_cs_status"
 fi
 
-# The true output is the finalmsg we made all along
-echo "$finalmsg"
+
+case $0 in
+    *automsg*)  # output the message only
+        # The true output is the finalmsg we made all along
+        echo "$finalmsg"
+        ;;
+    *autocommit*)   # run a full git commit instead
+        git commit -a -m "$finalmsg"
+        ;;
+esac
