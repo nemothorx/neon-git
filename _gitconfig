@@ -57,3 +57,10 @@
     # the standalone ghls scripts run from the PWD as expected
     ghls = "!git status --short --branch --show-stash 2>/dev/null ; /bin/pwd ; ls -1A --file-type --group-directories-first | grep -v '.git/' | while read entry ; do echo \"$entry ~ $(git -c color.ui=always log -n 1  --format=format:\"%C(bold cyan)%s ~ %C(yellow)%ar%C(reset)\" -- \"$entry\")\" ; done | column -t -s~"
 
+    # when I want vimdiff, but dont want it to be my difftool (because meld)
+    vimdiff = !git difftool --tool=vimdiff
+
+    # cam = commit automessage (also "commit -a -m").
+    # any params on the commandline are added to the end automatically but none requred. safe to call as "git cam"
+    cam = !"git-autocommit.sh"
+
