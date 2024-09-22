@@ -79,19 +79,24 @@ fi
 # TODO: ensure all col1 files have a filename in col2 also
 # and all col3 are non-zero
 
+echo "## Testing uniqueness of source files"
+srcfileinfo=$(cat $ctrlfile.csv | grep -v '^#' | grep -v '^\$' | grep . | cut -d" " -f 1 | sort | uniq -d -c)
+[ ! -z "$srcfileinfo" ] && echo "! non-unique source file(s) found" && echo "$srcfileinfo" && exit 3
+
+
 echo "## Testing all targets are commands or non-existent files"
 while read srcfile tgtfile msg ; do
     case $srcfile in
         "$")
             if  ! command -v "$tgtfile" &>/dev/null ; then
                 echo "! command $tgtfile could not be found. Fix pls"
-                exit 3
+                exit 4
             fi
             ;;
         *)
-            [ ! -e "$srcfile" ] && echo "! src $srcfile not found. Fix $ctrlfile.csv" && exit 4
-            [ -z "$tgtfile" ] && echo "! $srcfile has no target. Bailing now" && exit 5
-            [ -e "$tgtfile" ] && echo "! $tgtfile already exists. Refusing to blat it with $srcfile. pls fix" && exit 6
+            [ ! -e "$srcfile" ] && echo "! src $srcfile not found. Fix $ctrlfile.csv" && exit 5
+            [ -z "$tgtfile" ] && echo "! $srcfile has no target. Bailing now" && exit 6
+            [ -e "$tgtfile" ] && echo "! $tgtfile already exists. Refusing to blat it with $srcfile. pls fix" && exit 7
             ;;
     esac
 done < <(cat $ctrlfile.csv | grep -v '^#' | grep . )
