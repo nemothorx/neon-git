@@ -16,6 +16,9 @@
 # here is that one-liner that lacks status line and colours, but is a plausible as an alias rather than a full script. 
 # ls -1A --file-type --group-directories-first | while read entry ; do echo "$entry ~ $(git log -n 1  --format=format:'%s ~ %ar'  "$entry")" ; done | column -t -s~
 
+# TODO: consider adding info if HEAD is not the newest
+
+
 ### step 0: some settings
 
 # options:
