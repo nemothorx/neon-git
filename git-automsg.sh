@@ -33,6 +33,10 @@
 
 # git compactsummary is our core info. Run `git` once for this
 git_cs=$(git diff ^HEAD --compact-summary --stat=64 2>/dev/null)
+# TODO/BUG: while this will detect renames, it wont detect them in all cases
+#   Known to fail when filenames are swapped. However, git DOES detect that situation on the actual commit (?!)
+#   ...solution is to work out how to get git diff to detect and display it
+#   ...workaround is to never have name swaps in a single commit
 
 # If it's empty, then we're either the very first commit of the repo, or nothing has changed
 # the "empty intitial repo" is the magic 4b825dc642cb6eb9a060e54bf8d69288fbee4904 (in SHA1 anyway)
