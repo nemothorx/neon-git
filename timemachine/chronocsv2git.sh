@@ -55,6 +55,7 @@
 
 # Colours:
 BOLD=$(tput bold)       # for errors causing exit
+REV=$(tput rev)         # for showing the line being processed when prompting
 RED=$(tput setaf 1)     # for errors causing exit
 TEAL=$(tput setaf 6)    # for announcing cp+git implied commands from the csv
 GRN=$(tput setaf 2)     # for announcing explicit commands from the csv
@@ -63,12 +64,16 @@ YLW=$(tput setaf 3)     # showing the explicit command requested
                             # also: user explicit command todo at end
 PURPLE=$(tput setaf 5)  # for headings from chronocsv2git 
                             # also: prompts (in bold)
+WHITE=$(tput setaf 7)
 RESET=$(tput sgr0)      # output of git commands
 
 ############################################ MAIN
 
 ctrlfile=chronogit    # this is a prefix. actual files have csv or md suffix
-                    
+
+case $1 in
+    -p) prompt=true ;;
+esac
 
 if [ ! -e $ctrlfile.csv ] ; then
     echo "${RED}${BOLD}! no csvfile found (expecting $ctrlfile.csv))${RESET}
@@ -135,7 +140,11 @@ echo ""
 
 #### pass 2: do the git-thing
 
-while read srcfile tgtfile msg ; do
+while read -u 3 srcfile tgtfile msg ; do
+    if [ -n "$prompt" ] ; then
+        read -p "${BOLD}${PURPLE}:: [enter] to process the following line:${RESET}
+${REV}${GRN}$srcfile${WHITE} ${TEAL}$tgtfile${WHITE} ${YLW}$msg${RESET} " proceed
+    fi
     case $srcfile in
         "$")
             echo "${GRN}:: cmd: '${YLW}$tgtfile $msg${RESET}${GRN}'${RESET}"
@@ -156,7 +165,7 @@ while read srcfile tgtfile msg ; do
             fi
             ;;
     esac
-done < <(cat $ctrlfile.csv | grep -v '^#' | grep .)
+done 3< <(cat $ctrlfile.csv | grep -v '^#' | grep .)
 
 echo ""
 echo ""
