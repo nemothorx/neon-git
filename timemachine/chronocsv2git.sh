@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Usage: $0 [-p]
+#   -p = prompt before processing each line from the source csv
+#
 # This script complements git-timemachine by processing a CSV (character
 # seperated, where character is bash IFS - ie, space/tab) containing the
 # following format
