@@ -146,7 +146,8 @@ echo ""
 while read -u 3 srcfile tgtfile msg ; do
     if [ -n "$prompt" ] ; then
         read -p "${BOLD}${PURPLE}:: [enter] to process the following line:${RESET}
-${REV}${GRN}$srcfile${WHITE} ${TEAL}$tgtfile${WHITE} ${YLW}$msg${RESET} " proceed
+${REV}${GRN}$srcfile${WHITE} -> ${TEAL}$tgtfile
+${YLW}$msg${RESET} " proceed
     fi
     case $srcfile in
         "$")
