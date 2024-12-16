@@ -93,10 +93,10 @@ if [ ! -d ".git" ] ; then
 fi
 
 
-#### pass 1:  sanity check csvfile
+#### pass 1:  sanity check csvfile and source files
 # ensure all col1 exist as files or commands
 # TODO: ensure all col1 files have a filename in col2 also
-# and all col3 are non-zero
+# TODO: for every directory within col1, check ALL files and report any that are missing from col1
 
 echo "${PURPLE}## Testing uniqueness of source files${RESET}"
 srcfileinfo=$(cat $ctrlfile.csv | grep -v '^#' | grep -v '^\$' | grep . | cut -d" " -f 1 | sort | uniq -d -c)
@@ -119,6 +119,20 @@ while read srcfile tgtfile msg ; do
             ;;
     esac
 done < <(cat $ctrlfile.csv | grep -v '^#' | grep . )
+
+echo "${PURPLE}## Testing contents of source directories${RESET}"
+# TODO: normalise directory names of "dir" vs "./dir" in case both exist in the src file
+srcdirlist=$(cat $ctrlfile.csv | grep -v '^#' | grep -v '^\$' | grep . | cut -d" " -f 1 | sort | uniq | while read file ; do dirname $file ; done | uniq)
+srcdirfiles=$(find $srcdirlist -type f)
+unreferencedfiles=$(while read srcdirfile ; do
+    grep -q "^$srcdirfile " $ctrlfile.csv || echo $srcdirfile
+done < <(echo "$srcdirfiles") )
+
+if [ -n "${unreferencedfiles}" ] ; then
+    echo "  Found the following unreferences files within source directories"
+    echo "${unreferencedfiles}" | sed -e "s/^/    /g"
+    read -p "Progress anyway? [Enter to continue, ^c to quit]" prompt
+fi
 
 echo""
 
