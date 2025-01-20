@@ -190,9 +190,8 @@ echo ""
 
 srcflist=$(cat $ctrlfile.csv | cut -d" " -f 1 | grep -v '^\$' | grep -v '^\#' | grep . | tr "\n" " ")
 echo "${PURPLE}## Your todo: manual review/cleanup:
-${BOLD}* review git log. If satisfied then remove original source files${RESET}"
-echo "${BOLD}${YLW}tar cvfz chronogitcsv2git-timemachine.tgz $ctrlfile.csv $ctrlfile.md $srcflist
-rm $srcflist
+${BOLD}* review git log. If satisfied then tar and remove original source files${RESET}"
+echo "${BOLD}${YLW}tar cvfz chronogitcsv2git-timemachine.tgz $ctrlfile.csv $ctrlfile.md $srcflist --remove-files
 git rm $ctrlfile.csv
 git rm $ctrlfile.md${RESET}"
 echo "${BOLD}${PURPLE}* Update README.md to suit
