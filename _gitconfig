@@ -64,3 +64,6 @@
     # any params on the commandline are added to the end automatically but none requred. safe to call as "git cam"
     cam = !"git-autocommit.sh"
 
+    # touch from https://www.reddit.com/r/linux/comments/1nxz0lr/comment/nhzqt59/
+    touch = commit --amend --no-edit --date="$(date -R)"
+
