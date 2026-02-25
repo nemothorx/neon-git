@@ -1,11 +1,22 @@
 #!/bin/bash
 
-# create a calender of commit activity over time, similar to github. 
-# ...this may be worth rolling into ghls? 
+# create a calender of commit activity over time, similar to github.
+# ...this may be worth rolling into ghls?
 #
 # name based on https://github.com/k4rthik/git-cal
 # (found when seeing if there were existing solutions)
 # no code reuse though
+
+# a note on PERFORMANCE
+# This script basically does two things:
+# 1. `git log`
+# 2. parse the results.
+#
+# For a 17 month history, parsing takes approx 2.5 seconds on my system
+# The overall performance then is dependant on git log
+# ...on a repo with approx a dozen commits, `git log` is effectively instant, and overall duration of ~2.5 seconds.
+# ...on a repo with 2.7million commits in 17 months (linux kernel), `git log` takes approx 3 seconds, for an overall duration of 5.5 seconds.
+#
 
 # example intended output using these potential characters
 # c for character
@@ -24,23 +35,25 @@ c="🭌"  #    1FB4C   LOWER LEFT BLOCK DIAGONAL UPPER CENTRE TO UPPER MIDDLE RI
 # 3 columns on left (border, weekdays, border)
 # 1 column on right (border)
 # Thus 80column term can handle 76 weeks, or 75 FULL weeks, thus X column term we set for x-5 weeks back in history)
-# note: 
+# note:
 # 52 weeks = year(ish)
 # 65 weeks = 1.25 years
-# 70 weeks = 1.3333 years 
+# 70 weeks = 1.3333 years
 # 75 weeks is roughly 17 months
 
-# If you want more history, make your terminal wider! 
-# TODO: a -y option to do a year, "-y x" to do multiple - in exact year blocks
+# If you want more history, make your terminal wider!
+# TODO: consider a -y option to do a year, "-y x" to do multiple - in exact year blocks
 
-# note that I use ISO 8601 weeks, in opposition to github's sunday-first
+# note: I start weeks on monday (ISO8601), rather than sunday-first as gh uses
 
 # questions n answers
 # Timezones?
     # No. I'm lazy. Git commits store the timezone of the original commit, so I just count commits per-day from the point of view of the day the committer commited them
-    # I believe this means it's technically possible for an Australian to make a commit to a repo, and a few hours LATER, a californian to make a commit, but the californian commit show up on this graph on the PREVIOUS day. 
+    # I believe this means it's technically possible for an Australian to make a commit to a repo, and a few hours LATER, a californian to make a commit, but the californian commit show up on this graph on the PREVIOUS day.
     # ...this COULD be normalised by getting all logs in unix time, but I dont care that much.
-    # Plus, I dont think the current behaviour is nescessarily a bug. It's indicative of the day of commit according to the commiter. 
+    # Plus, I dont think the current behaviour is nescessarily a bug. It's indicative of the day of commit according to the commiter.
+# Filter per user, or exclude some branches
+    # Nope. But theoretically doable if you know your `git log` command sufficiently.
 
 ###### functions
 
@@ -61,7 +74,7 @@ do_setcol() {
 
 # find our starting monday
 columns=$(tput cols)
-weeks=$(($columns-5))    # we have room for this many full weeks back 
+weeks=$(($columns-5))    # we have room for this many full weeks back
 
 noontoday_t=$(date -d 12:00 +%s)  # time_t for noon today (avoid DST edge cases when walking days later in the code)
 
@@ -92,7 +105,7 @@ col3=$(tput setaf 178)   # usage = third  quartile: 51-75%
 col4=$(tput setaf 196)   # usage = fourth quartile: 76-100%
 
 # START OUTPUT
-rset=$(tput sgr0 ; tput setab 0) # yes, forcing black background 
+rset=$(tput sgr0 ; tput setab 0) # yes, forcing black background
 echo "${rset}Commit heatmap calender - $weeks weeks (from $(date -d @$startmonday_t +"%a %d %b %Y")) $(tput el)"
     # TEMPLATE THE OUTPUT
 echo "   "  # this line will be populated by month labels later on
@@ -154,19 +167,19 @@ for t in $(seq ${startmonday_t} 86400 ${noontoday_t} ) ; do
     case $d in
         *Sun*)  # After sunday, we back to the top
             tput cuu 7
-            tput cuf 1 
+            tput cuf 1
             ;;
     esac
 done
 
 # final summary
-tput cud 7  # ensure we're at the end of the everything 
+tput cud 7  # ensure we're at the end of the everything
 tput cub $columns  # and at the start of line
 # activity scale indicators (values same as do_setcol)
 echo -n "    ${rset}Activity scale: "
 echo -n "[0:${col0}${c}${rset}] "
-echo -n "[1-$(($peak/4)):${col1}${c}${rset} ] "
-echo -n "[»$(($peak/2)):${col2}${c}${rset} ] "
-echo -n "[»$((3*$peak/4)):${col3}${c}${rset} ] "
-echo "[»$peak:${col4}${c}${rset} ]"
+echo -n "[1-$(($peak/4)):${col1}${c}${rset}] "
+echo -n "[»$(($peak/2)):${col2}${c}${rset}] "
+echo -n "[»$((3*$peak/4)):${col3}${c}${rset}] "
+echo "[»$peak:${col4}${c}${rset}]"
 
