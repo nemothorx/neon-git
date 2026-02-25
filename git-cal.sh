@@ -131,6 +131,8 @@ while read a b ; do
     [ "$a" -gt "$peak" ] && peak=$a
 done < <( (git log --since="$(($weeks+1)) weeks ago" --format=format:'%ad' --date=format:"%a %d %b %Y" ; echo ) | sort -k 4g -k 3M -k 2g | uniq -c )
     # weeks+1 because we have a fraction-of-a-week extra relative to $weeks
+    # TODO: BUG? ...git log with --since can pull in things EARLIER than the since. I assume due to complications of branches and/or differnces between GIT_AUTHOR_DATE and GIT_COMMITTER_DATE.
+    # ...I'm not git savvy enough to improve this (or say this is optimal)
 
 # heatdata array is indexed in the form of a date. eg
 # heatdata[Tue 10 Dec 2024]=2
