@@ -35,6 +35,9 @@ Two versions `ghls` and `ghls2` exist.
 Note that this is the script which moved the repo away from being
 "git-timemachine" and into just being my personalised set of git helpers
 
+## git-cal
+
+Generate a heatmap calender of commits-per-day for the repo. Overall style inspired by github GUI view. (however gh's view is per-user, mine is per-repo)
 
 ## git-trawl
 
