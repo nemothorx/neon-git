@@ -22,13 +22,26 @@
 # c for character
 c="■"  #    25A0    BLACK SQUARE
 c="◼"  #    25FC    BLACK MEDIUM SQUARE
-c="▣"  #    25A3    WHITE SQUARE CONTAINING BLACK SMALL SQUARE
 c="▩"  #    25A9    SQUARE WITH DIAGONAL CROSSHATCH FILL
-c="⧯"  #    29EF    ERROR-BARRED BLACK SQUARE
+c="▣"  #    25A3    WHITE SQUARE CONTAINING BLACK SMALL SQUARE
 c="▪"  #    25AA    BLACK SMALL SQUARE
 c="▮"  #    25AE    BLACK VERTICAL RECTANGLE
-c="█"  #    2588    FULL BLOCK
+c="⧯"  #    29EF    ERROR-BARRED BLACK SQUARE
 c="🮋"  #    1FB8B   RIGHT SEVEN EIGHTHS BLOCK
+c="█"  #    2589    FULL BLOCK
+c="▒"  #    2592    MEDIUM SHADE
+c="▓"  #    2593    DARK SHADE
+
+# this works on macOS, but I'd have to invert fg/bg everywhere to have it do the "1st = underline" that the "upper seven eighths block" does. overline doesn't look right visually
+c="▇"  #    2587    LOWER SEVEN EIGHTHS BLOCK
+
+# this has the same problem as the lower seven eights block. It reads as a marker for the character to the right, not the left
+c="▉"  #    2589    LEFT SEVEN EIGHTHS BLOCK
+
+# this is my second fave, also fails on macOS 15.6.1
+c="🮆"  #    1FB86   UPPER SEVEN EIGHTHS BLOCK
+
+# this is my fave visually, but fails on macOS 15.6.1
 c="🭌"  #    1FB4C   LOWER LEFT BLOCK DIAGONAL UPPER CENTRE TO UPPER MIDDLE RIGHT
 
 
@@ -180,7 +193,7 @@ tput cub $columns  # and at the start of line
 # activity scale indicators (values same as do_setcol)
 echo -n "    ${rset}Activity scale: "
 echo -n "[0:${col0}${c}${rset}] "
-echo -n "[1-$(($peak/4)):${col1}${c}${rset}] "
+echo -n "[1»$(($peak/4)):${col1}${c}${rset}] "
 echo -n "[»$(($peak/2)):${col2}${c}${rset}] "
 echo -n "[»$((3*$peak/4)):${col3}${c}${rset}] "
 echo "[»$peak:${col4}${c}${rset}]"
