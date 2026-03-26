@@ -140,7 +140,7 @@ declare -A heatdata
 peak=0
 # get the data into that array
 while read a b ; do
-    heatdata["${b}"]=$a
+    [ -n "$b" ] && heatdata["${b}"]=$a  # handle a cal with zero data
     [ "$a" -gt "$peak" ] && peak=$a
 done < <( (git log --since="$(($weeks+1)) weeks ago" --format=format:'%ad' --date=format:"%a %d %b %Y" ; echo ) | sort -k 4g -k 3M -k 2g | uniq -c )
     # weeks+1 because we have a fraction-of-a-week extra relative to $weeks
