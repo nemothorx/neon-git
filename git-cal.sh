@@ -68,6 +68,8 @@ c="🭌"  #    1FB4C   LOWER LEFT BLOCK DIAGONAL UPPER CENTRE TO UPPER MIDDLE RI
 # Filter per user, or exclude some branches
     # Nope. But theoretically doable if you know your `git log` command sufficiently.
 
+runat_t=$(date +%s)
+
 ###### functions
 
 do_setcol() {
@@ -158,8 +160,11 @@ for t in $(seq ${startmonday_t} 86400 ${noontoday_t} ) ; do
     month=${noyear##* }
     noday=${d#* }
     date=${noday%% *}
-    if [ "$month" != "$monthprev" ] ; then
+    if [ "$month" != "$monthprev" ] && [ $((t+604800)) -le $runat_t ] ; then
         # jump up and print the month label, then jump back
+        # note: I dont do this in the last week, since if we're in the final COLUMN, it wraps the terminal
+        # TODO: BUG: fix this so it only avoids if we're in the actual last column
+        #   alt fix: reduce the number of rows done, and do a right-side MTWTFSS row key
         case $d in
             *Mon*) lines=1 ;;
             *Tue*) lines=2 ;;
