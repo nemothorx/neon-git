@@ -175,7 +175,11 @@ for t in $(seq ${startmonday_t} 86400 ${noontoday_t} ) ; do
             *Sun*) lines=7 ;;
         esac
         tput cuu $lines
-        printf "${rset}${month}"
+        case $month in
+            Jan) printmonth=$(tput rev)$month$(tput sgr0) ;;
+            *) printmonth=$month
+        esac
+        printf "${rset}${printmonth}"
         tput cud $lines ; tput cub 3
     fi
     # 1st of the month = tag the corner to suit
