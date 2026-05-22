@@ -3,9 +3,8 @@
 # Usage: $0 [-p]
 #   -p = prompt before processing each line from the source csv
 #
-# This script complements git-timemachine by processing a CSV (character
-# seperated, where character is bash IFS - ie, space/tab) containing the
-# following format
+# This script complements git-timemachine by processing a TSV (TAB seperated
+# seperated CSV) containing the following format
 # 
 # src_filename tgt_filename commit message(which, may be\n\n"complex"))
 # $ ls -r -o -t
@@ -17,6 +16,8 @@
 # * note3: if there is only fields 1,2 and no commit message, then there is no
 #          git commit against that file. git add only. Thus multiple files may
 #          be added prior to a single commit
+#
+# expected filename is chronogit.csv
 # 
 # The commit message itself is interpreted through `echo -e` thus while it's
 # a single line in the CSV, it can output to multiple lines. Note the
@@ -99,12 +100,12 @@ fi
 # TODO: for every directory within col1, check ALL files and report any that are missing from col1
 
 echo "${PURPLE}## Testing uniqueness of source files${RESET}"
-srcfileinfo=$(cat $ctrlfile.csv | grep -v '^#' | grep -v '^\$' | grep . | cut -d" " -f 1 | sort | uniq -d -c)
+srcfileinfo=$(cat $ctrlfile.csv | grep -v '^#' | grep -v '^\$' | grep . | cut -f 1 | sort | uniq -d -c)
 [ ! -z "$srcfileinfo" ] && echo "${RED}${BOLD}! non-unique source file(s) found${RESET}" && echo "$YELLOW$srcfileinfo${RESET}" && exit 3
 
 
 echo "${PURPLE}## Testing all targets are commands or non-existent files${RESET}"
-while read srcfile tgtfile msg ; do
+while IFS="	" read srcfile tgtfile msg ; do
     case $srcfile in
         "$")
             if  ! command -v "$tgtfile" &>/dev/null ; then
@@ -122,10 +123,10 @@ done < <(cat $ctrlfile.csv | grep -v '^#' | grep . )
 
 echo "${PURPLE}## Testing contents of source directories${RESET}"
 # TODO: normalise directory names of "dir" vs "./dir" in case both exist in the src file
-srcdirlist=$(cat $ctrlfile.csv | grep -v '^#' | grep -v '^\$' | grep . | cut -d" " -f 1 | sort | uniq | while read file ; do dirname $file ; done | uniq)
+srcdirlist=$(cat $ctrlfile.csv | grep -v '^#' | grep -v '^\$' | grep . | cut -f 1 | sort | uniq | while read file ; do dirname "${file}" ; done | uniq)
 srcdirfiles=$(find $srcdirlist -type f)
 unreferencedfiles=$(while read srcdirfile ; do
-    grep -q "^$srcdirfile " $ctrlfile.csv || echo $srcdirfile
+    grep -q  "^$srcdirfile" $ctrlfile.csv || echo $srcdirfile
 done < <(echo "$srcdirfiles") )
 
 if [ -n "${unreferencedfiles}" ] ; then
@@ -133,8 +134,6 @@ if [ -n "${unreferencedfiles}" ] ; then
     echo "${unreferencedfiles}" | sed -e "s/^/    /g"
     read -p "Progress anyway? [Enter to continue, ^c to quit]" prompt
 fi
-
-echo""
 
 # TODO: validate $msg to be suitable for "$msg" in git commandline. ie, no '"'??
 
@@ -157,7 +156,7 @@ echo ""
 
 #### pass 2: do the git-thing
 
-while read -u 3 srcfile tgtfile msg ; do
+while IFS="	" read -u 3 srcfile tgtfile msg ; do
     if [ -n "$prompt" ] ; then
         read -p "${BOLD}${PURPLE}:: [enter] to process the following line:${RESET}
 ${REV}${GRN}$srcfile${WHITE} -> ${TEAL}$tgtfile
@@ -172,10 +171,10 @@ ${YLW}$msg${RESET} " proceed
             echo ""
             ;;
         *)
-            echo "${TEAL}:: cp+git add: ${YLW}$(cp -av $srcfile $tgtfile)${RESET}"
-            git add $tgtfile
+            echo "${TEAL}:: cp+git add: ${YLW}$(cp -av "${srcfile}" "${tgtfile}")${RESET}"
+            git add "${tgtfile}"
             if [ -n "$msg" ] ; then
-                eval $(git timemachine $tgtfile) # set the time of commit
+                eval $(git timemachine "${tgtfile}") # set the time of commit
                 commitmsg=$(echo -e "${msg}") # msg from the chronogit.csv
                 finalmsg="$(git-automsg.sh "$commitmsg")" # git-automsg adds statistics to the msg
                 git commit -a -m "$finalmsg"
@@ -188,7 +187,7 @@ done 3< <(cat $ctrlfile.csv | grep -v '^#' | grep .)
 echo ""
 echo ""
 
-srcflist=$(cat $ctrlfile.csv | cut -d" " -f 1 | grep -v '^\$' | grep -v '^\#' | grep . | tr "\n" " ")
+srcflist=$(cat $ctrlfile.csv | cut -f 1 | grep -v '^\$' | grep -v '^\#' | grep . | tr "\n" " ")
 echo "${PURPLE}## Your todo: manual review/cleanup:
 ${BOLD}* review git log. If satisfied then tar and remove original source files${RESET}"
 echo "${BOLD}${YLW}tar cvfz chronogitcsv2git-timemachine.tgz $ctrlfile.csv $ctrlfile.md $srcflist --remove-files
