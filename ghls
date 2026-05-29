@@ -63,6 +63,8 @@ do_getfileinfo() {
 
 ####################################################### main, basically
 
+[ $1 == "cal" ] && git-cal.sh      # prepend git calendar. TODO: -l/-v/etc options?
+
 # first: summary line, github style
 
 gitrepoinfo=$(git log --abbrev-commit --abbrev=10 --format=format:"%an	%h	%ar	%s" -n 1)
