@@ -25,6 +25,8 @@
 
 # TODO: investigate gitea, gitlab, etc for how they show summaries too
 
+[ "$1" == "cal" ] && git-cal.sh      # prepend git calendar. TODO: -l/-v/etc options?
+
 # Check if we're even in a git repo and tell us about it (in 
 git status --short --branch --show-stash 2>/dev/null
 case $? in 
@@ -63,7 +65,6 @@ do_getfileinfo() {
 
 ####################################################### main, basically
 
-[ $1 == "cal" ] && git-cal.sh      # prepend git calendar. TODO: -l/-v/etc options?
 
 # first: summary line, github style
 
