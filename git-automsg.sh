@@ -11,6 +11,11 @@
 
 # HOWEVER, if this is called as "git-autocommit.sh" then instead of echoing the generated msg, it performs 'git commit -a -m "finalmsg"'
 
+# If run as git-autocommit, then a -t option is available
+#   This will set the commit time to that of the mtime of the newest file, using git-timemachine
+#   (option exists when run as git-automsg.sh, just does nothing there)
+
+
 
 # The idea here is to generate an informative commit message suitable
 # for autocommit setups, and better than a generic "this is an ato commit"
@@ -38,18 +43,42 @@ git_cs=$(git diff ^HEAD --compact-summary --stat=64 2>/dev/null)
 #   ...solution is to work out how to get git diff to detect and display it
 #   ...workaround is to never have name swaps in a single commit
 
-# If it's empty, then we're either the very first commit of the repo, or nothing has changed
-# the "empty intitial repo" is the magic 4b825dc642cb6eb9a060e54bf8d69288fbee4904 (in SHA1 anyway)
-#   (but we generate it on the fly for futureproofing)
-#       this info from https://jiby.tech/post/git-diff-empty-repo/
-[ -z "$git_cs" ] && git_cs=$(git diff $(printf '' | git hash-object -t tree --stdin) --compact-summary --stat=64 2>/dev/null)
-# TODO/BUG: the above also triggers when there are no changes. We should detect that and exit early
+if [ -z "$git_cs" ] ; then
+    # If it's empty, then it's one of: 
+    # * git repo initialised, no commits, nothing even added
+    # * git repo initialised, no commits, but something added, not yet commited
+    # * working repo, nothing has changed since the last commit
+    # If it's the first or third, we should exit. However, if it's the second, we have valid reason to continue. 
 
-# If it's STILL empty, then nothing has changed and we exit silently
-# Note that if we're run within `git -m "$(git-automsg.sh)"` then the
-# parent git will now fail to commit without a message. 
-[ -z "$git_cs" ] && exit
+    # test for the third:
+    git_cs=$(git status -s)
+    [ -z "$git_cs" ] && exit
+    # NOTE/BUG/TODO: This is non-empty in the following situation:
+    # * working git repo, with untracked files (means `git diff` was empty but `git status -s` check passes through...
+    # * Result is... we end up with a diff against the empty initial repo via below. damn. 
 
+    # test for first
+        # note: the "empty intitial repo" is the magic 4b825dc642cb6eb9a060e54bf8d69288fbee4904 (in SHA1 anyway)
+        #   (but we generate it on the fly for futureproofing)
+        #       this info from https://jiby.tech/post/git-diff-empty-repo/
+        #
+    git_cs=$(git diff $(printf '' | git hash-object -t tree --stdin) --compact-summary --stat=64 2>/dev/null)
+    [ -z "$git_cs" ] && exit
+
+    # Note that if we're run within `git commit -a -m "$(git-automsg.sh)"` 
+    # and we've exited here, then the parent git will now fail to commit
+
+    # At this point, I think, git_cs should have correct info if we're in situation #2
+fi
+
+
+# fold in a git-timemachine option. 
+# Note: does nothing when $0 is git-automsg.sh
+if [ "$1" == "-t" ] ; then
+    newestfile=$(git diff ^HEAD --name-only | tr "\n" "\0" | xargs -0 ls -r1tha | tail -n 1)
+    eval $(git-timemachine "$newestfile")
+    shift
+fi
 
 # Grab the summary of the summary from the last line
 git_cs_summary=$(echo "$git_cs" | tail -n 1)
