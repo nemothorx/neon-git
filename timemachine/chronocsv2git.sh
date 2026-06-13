@@ -88,7 +88,8 @@ For now however: Exiting with nothing to do${RESET}"
     exit 1
 fi
 
-if [ ! -d ".git" ] ; then
+#    if [ ! -d ".git" ] ; then
+if [ $(git rev-parse --is-inside-work-tree) != "true" ] ; then
     echo "${RED}${BOLD}! Not yet a git repo. I dont do that step. please fix (git init ?)${RESET}"
     exit 2
 fi
