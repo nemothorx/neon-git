@@ -200,7 +200,7 @@ done
 tput cud 7  # ensure we're at the end of the everything
 tput cub $columns  # and at the start of line
 # activity scale indicators (values same as do_setcol)
-echo -n "    ${rset}Activity scale: "
+echo -n "${rset}    Activity scale: "
 echo -n "[0:${col0}${c}${rset}] "
 echo -n "[1»$(($peak/4)):${col1}${c}${rset}] "
 echo -n "[»$(($peak/2)):${col2}${c}${rset}] "

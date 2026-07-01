@@ -75,7 +75,7 @@ fi
 # fold in a git-timemachine option. 
 # Note: does nothing when $0 is git-automsg.sh
 if [ "$1" == "-t" ] ; then
-    newestfile=$(git diff ^HEAD --name-only | tr "\n" "\0" | xargs -0 ls -r1tha | tail -n 1)
+    newestfile=$(git diff ^HEAD --name-only | tr "\n" "\0" | xargs -0 ls -r1tha 2>/dev/null | tail -n 1)
     eval $(git-timemachine "$newestfile")
     shift
 fi
